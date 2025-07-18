@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior: smooth;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Background Website Template</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- A-Frame CDN -->
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="relative bg-gray-900 text-gray-100">
+
+    <!-- A-Frame Scene for 3D Background -->
+    <a-scene embedded class="a-scene-full-background">
+        <a-entity light="type: ambient; color: #BBBBBB"></a-entity>
+        <a-entity light="type: directional; color: #FFFFFF; intensity: 0.8" position="-1 1 1"></a-entity>
+        <a-sky color="#222"></a-sky>
+
+        <a-entity
+            gltf-model="url(https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf)"
+            position="0 1.5 -3"
+            rotation="0 45 0"
+            scale="1 1 1"
+            animation="property: rotation; to: 0 405 0; dur: 10000; easing: linear; loop: true"
+        ></a-entity>
+
+        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+    </a-scene>
+
+    <!-- Main Content Layer -->
+    <div class="content-layer">
+        <!-- Responsive Navigation Bar -->
+        <nav class="fixed top-0 left-0 right-0 bg-black/70 backdrop-blur-sm p-4 z-50 shadow-lg">
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="#hero" class="text-2xl font-bold text-white rounded-lg">Your Logo</a>
+
+                <!-- Mobile Menu Button (Hamburger) -->
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="text-white focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="#hero" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Home</a>
+                    <a href="#features" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Features</a>
+                    <a href="#offer" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">What We Offer</a>
+                    <a href="#services" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Services</a>
+                    <a href="#contact" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Contact</a>
+                </div>
+            </div>
+
+            <!-- Mobile Menu (Hidden by default) -->
+            <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-2">
+                <a href="#hero" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Home</a>
+                <a href="#features" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Features</a>
+                <a href="#offer" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">What We Offer</a>
+                <a href="#services" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Services</a>
+                <a href="#contact" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Contact</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <header id="hero" class="relative hero-background h-screen flex items-center justify-center text-white overflow-hidden pt-16"> <!-- Added pt-16 for navbar offset -->
+            <div class="absolute inset-0 bg-black opacity-40"></div>
+
+            <div class="relative z-10 text-center p-6 sm:p-8 md:p-12 max-w-4xl mx-auto section-hidden">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-4 rounded-lg">
+                    Discover the Future of Web Experiences
+                </h1>
+                <p class="text-lg sm:text-xl md:text-2xl font-light mb-8 opacity-90 rounded-lg">
+                    Immerse your visitors with stunning 3D backgrounds and modern design.
+                </p>
+                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+                    Get Started
+                </button>
+            </div>
+        </header>
+
+        <!-- Example Content Section 1: Features -->
+        <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/50 section-hidden">
+            <div class="max-w-6xl mx-auto text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">Our Features</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg transform hover:scale-105 transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-semibold mb-3 text-white">Interactive 3D</h3>
+                        <p class="text-gray-300">Engage users with dynamic and interactive 3D models right on your homepage.</p>
+                    </div>
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg transform hover:scale-105 transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-semibold mb-3 text-white">Modern Design</h3>
+                        <p class="text-gray-300">Leverage Tailwind CSS for a sleek, responsive, and highly customizable interface.</p>
+                    </div>
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg transform hover:scale-105 transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-semibold mb-3 text-white">Performance Optimized</h3>
+                        <p class="text-gray-300">Built with efficiency in mind to ensure smooth loading and user experience.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Example Content Section 2: What We Offer -->
+        <section id="offer" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/70 section-hidden">
+            <div class="max-w-6xl mx-auto text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">What We Offer</h2>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-12">
+                    <div class="md:w-1/2">
+                        <img src="https://placehold.co/600x400/334155/FFFFFF?text=Awesome+Product" alt="Awesome Product" class="rounded-xl shadow-xl w-full h-auto object-cover">
+                    </div>
+                    <div class="md:w-1/2 text-left bg-black/50 p-6 rounded-xl shadow-lg">
+                        <p class="text-lg mb-4 text-gray-300">
+                            Our platform provides a unique blend of cutting-edge technology and user-centric design.
+                            From immersive experiences to robust backend solutions, we cover all your needs.
+                        </p>
+                        <ul class="list-disc list-inside text-gray-300 space-y-2">
+                            <li>Seamless 3D integration</li>
+                            <li>Fully responsive layouts</li>
+                            <li>Easy customization with Tailwind</li>
+                            <li>Scalable architecture</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Content Section 3: Our Services -->
+        <section id="services" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/50 section-hidden">
+            <div class="max-w-6xl mx-auto text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">Our Services</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-3 text-white">Web Development</h3>
+                        <p class="text-gray-300">Building responsive and high-performance websites tailored to your needs.</p>
+                    </div>
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-3 text-white">3D Modeling & Animation</h3>
+                        <p class="text-gray-300">Creating stunning 3D assets and animations for immersive web experiences.</p>
+                    </div>
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-3 text-white">UI/UX Design</h3>
+                        <p class="text-gray-300">Crafting intuitive and engaging user interfaces for optimal user satisfaction.</p>
+                    </div>
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-3 text-white">Consulting</h3>
+                        <p class="text-gray-300">Expert advice and strategy to elevate your digital presence.</p>
+                    </div>
+                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-semibold mb-3 text-white">Maintenance & Support</h3>
+                        <p class="text-gray-300">Ensuring your website remains up-to-date, secure, and performs flawlessly.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Content Section 4: Call to Action / Testimonials -->
+        <section id="testimonials" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/70 section-hidden">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">What Our Clients Say</h2>
+                <div class="bg-black/60 p-8 rounded-xl shadow-lg mb-8">
+                    <p class="text-xl italic text-gray-200 mb-4">
+                        "The 3D background truly transformed our website! It's visually stunning and incredibly unique. The team was a pleasure to work with."
+                    </p>
+                    <p class="font-semibold text-white">- Jane Doe, CEO of InnovateCorp</p>
+                </div>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50">
+                    Join Our Satisfied Clients
+                </button>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/80 section-hidden">
+            <div class="max-w-2xl mx-auto text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">Get in Touch</h2>
+                <p class="text-lg text-gray-300 mb-8">
+                    Have a project in mind or just want to say hello? We'd love to hear from you!
+                </p>
+                <form class="space-y-6 text-left">
+                    <div>
+                        <label for="name" class="block text-gray-300 text-sm font-bold mb-2">Name</label>
+                        <input type="text" id="name" name="name" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-200/90 border-gray-600" placeholder="Your Name">
+                    </div>
+                    <div>
+                        <label for="email" class="block text-gray-300 text-sm font-bold mb-2">Email</label>
+                        <input type="email" id="email" name="email" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-200/90 border-gray-600" placeholder="your@example.com">
+                    </div>
+                    <div>
+                        <label for="message" class="block text-gray-300 text-sm font-bold mb-2">Message</label>
+                        <textarea id="message" name="message" rows="5" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-200/90 border-gray-600" placeholder="Your message..."></textarea>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
+                            Send Message
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-black/90 py-8 px-4 sm:px-6 lg:px-8 text-center text-gray-400">
+            <p>&copy; 2025 Your Company. All rights reserved.</p>
+            <div class="mt-4 flex justify-center space-x-4">
+                <a href="#" class="hover:text-white transition duration-200">Privacy Policy</a>
+                <a href="#" class="hover:text-white transition duration-200">Terms of Service</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Smooth scroll behavior is enabled via 'scroll-behavior: smooth;' in body style.
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuButton && mobileMenu) {
+            mobileMenuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // Close mobile menu when a link is clicked
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        }
+
+        // Intersection Observer for section transitions
+        const sections = document.querySelectorAll('section, header'); // Select all sections and the header
+        const observerOptions = {
+            root: null, // viewport
+            rootMargin: '0px',
+            threshold: 0.2 // Trigger when 20% of the section is visible
+        };
+
+        const sectionObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('section-hidden');
+                    entry.target.classList.add('section-visible');
+                    // Optionally, unobserve once visible if you only want the animation to play once
+                    // observer.unobserve(entry.target);
+                } else {
+                    // Optional: Re-hide if scrolling away, uncomment if you want repeatable animation
+                    // entry.target.classList.remove('section-visible');
+                    // entry.target.classList.add('section-hidden');
+                }
+            });
+        }, observerOptions);
+
+        // Add the 'section-hidden' class initially and observe
+        sections.forEach(section => {
+            if (section.id !== 'hero') { // Hero section can be visible by default or animated on load
+                section.classList.add('section-hidden');
+            }
+            sectionObserver.observe(section);
+        });
+
+        // Animate hero section on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const heroContent = document.querySelector('#hero .relative.z-10');
+            if (heroContent) {
+                heroContent.classList.add('section-visible');
+            }
+        });
+
+    </script>
+</body>
+</html>
