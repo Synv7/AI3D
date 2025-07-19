@@ -65,7 +65,7 @@ a-scene {
 <body class="relative bg-gray-900 text-gray-100">
 
     <!-- A-Frame Scene for 3D Background -->
-    <a-scene embedded class="a-scene-full-background">
+    <a-scene embedded class="a-scene-full-background" xr-mode-ui="enabled: false" info-message="htmlSrc: #messageText" device-orientation-permission-ui="enabled: false">
         <a-entity light="type: ambient; color: #BBBBBB"></a-entity>
         <a-entity light="type: directional; color: #FFFFFF; intensity: 0.8" position="-1 1 1"></a-entity>
         <a-sky color="#222"></a-sky>
