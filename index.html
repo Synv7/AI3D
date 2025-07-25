@@ -1,327 +1,468 @@
 <!DOCTYPE html>
-<html lang="en" style="scroll-behavior: smooth;">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Background Website Template</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- A-Frame CDN -->
+    <title>Mass Timber Nexus | Symposium & Hackathon 2025</title>
+    
+    <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
-    <!-- <link rel="stylesheet" href="/style.css"> --> 
-     <style>
-         /* Apply Inter font and ensure full height */
- body {
-    font-family: 'Inter', sans-serif;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden; /* Prevent horizontal scroll */
-    min-height: 100vh; /* Ensure body takes at least full viewport height */
-}
 
-/* Style for the A-Frame scene to cover the background */
-.a-scene-full-background {
-    position: fixed; /* Use fixed to keep it in the background during scroll */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1; /* Place it behind other content */
-}
+    <!-- Vanta.js dependencies -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.topology.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
 
-/* Ensure content layers correctly on top of the A-Frame scene */
-.content-layer {
-    position: relative;
-    z-index: 1; /* Place content above the A-Frame scene */
-}
 
-/* Custom styles for hero section background image */
-.hero-background {
-    background-image: url('hero.jpg');
-    background-size: cover;
-    background-position: center;
-}
-
-/* Ensure the A-Frame canvas itself is responsive */
-a-scene {
-    display: block;
-    width: 100%;
-    height: 100%;
-}
-
-/* Animation for section transitions */
-.section-hidden {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.section-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-     </style>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: transparent; /* Make body transparent */
+            color: #1F2937; /* text-gray-800 */
+        }
+        #site-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1; /* Place it behind all content */
+        }
+        /* Force-hide the A-Frame VR button */
+        .a-enter-vr-button {
+            display: none !important;
+        }
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+        .hero-bg {
+            /* Added a dark overlay for text readability */
+            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('org.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+        .tab-active {
+            background-color: #166534; /* bg-green-800 */
+            color: white;
+        }
+        .tab-inactive {
+            background-color: #E5E7EB; /* bg-gray-200 */
+            color: #4B5563; /* text-gray-600 */
+        }
+        /* Styles for fade-in animations */
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.645, 0.045, 0.355, 1), transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+        .fade-in-section.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Make sections transparent to see the background */
+        header, main > section, footer {
+            background-color: transparent;
+        }
+        /* Add a backdrop for readability */
+        .content-card {
+             background-color: rgba(255, 255, 255, 0.7);
+             backdrop-filter: blur(10px);
+             -webkit-backdrop-filter: blur(10px);
+             border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        #hackathon {
+            position: relative;
+            background-color: transparent; /* Ensure hackathon section is transparent */
+        }
+        #speakers {
+            position: relative;
+        }
+        #vanta-bg, #vanta-hackathon-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+    </style>
 </head>
-<body class="relative bg-gray-900 text-gray-100">
+<body class="antialiased">
 
-    <!-- A-Frame Scene for 3D Background -->
-    <a-scene embedded class="a-scene-full-background" xr-mode-ui="enabled: false" info-message="htmlSrc: #messageText" device-orientation-permission-ui="enabled: false">
-        <a-entity light="type: ambient; color: #BBBBBB"></a-entity>
-        <a-entity light="type: directional; color: #FFFFFF; intensity: 0.8" position="-1 1 1"></a-entity>
-        <a-sky color="#222"></a-sky>
+    <!-- 3D Site Background -->
+    <a-scene id="site-background" embedded vr-mode-ui="enabled: false" renderer="alpha: true; colorManagement: true;" device-orientation-permission-ui="enabled: false">
+        <a-assets>
+            <!-- Corrected the src attribute for the GLB model -->
+            <a-asset-item id="helmet" src="House.glb"></a-asset-item>
+        </a-assets>
+        
+        <!-- GLB Model Entity -->
+        <a-entity gltf-model="#helmet" position="0 0.5 -4" scale="1.5 1.5 1.5">
+             <a-animation attribute="rotation" dur="20000" to="0 360 0" repeat="indefinite" easing="linear"></a-animation>
+        </a-entity>
 
-        <a-entity
-            gltf-model="url(House.glb)"
-            position="0 1.5 -3"
-            rotation="0 45 0"
-            scale="1 1 1"
-            animation="property: rotation; to: 0 405 0; dur: 10000; easing: linear; loop: true"
-        ></a-entity>
-
-        <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+        <!-- Lighting -->
+        <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
+        <a-light type="directional" intensity="0.5" position="-1 2 3"></a-light>
+        
+        <!-- Camera - disabled controls so it acts as a static background -->
+        <a-camera position="0 1.6 0" wasd-controls-enabled="false" look-controls-enabled="false"></a-camera>
     </a-scene>
 
-    <!-- Main Content Layer -->
-    <div class="content-layer">
-        <!-- Responsive Navigation Bar -->
-        <nav class="fixed top-0 left-0 right-0 bg-black/70 backdrop-blur-sm p-4 z-50 shadow-lg">
-            <div class="container mx-auto flex justify-between items-center">
-                <a href="#hero" class="text-2xl font-bold text-white rounded-lg">Your Logo</a>
+    <div class="content-wrapper">
+        <!-- Header -->
+        <header id="header" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <!-- Logo/Brand Name -->
+                    <a href="#" class="text-2xl font-bold text-gray-900 tracking-wider">
+                        MassTimber<span class="text-green-800 font-bold">Nexus</span>
+                    </a>
+                    
+                    <!-- Desktop Navigation -->
+                    <nav class="hidden md:flex space-x-8 items-center">
+                        <a href="#symposium" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Symposium</a>
+                        <a href="#hackathon" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Hackathon</a>
+                        <a href="#schedule" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Schedule</a>
+                        <a href="#speakers" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Speakers</a>
+                        <a href="#register" class="bg-green-800 hover:bg-green-900 text-white font-medium py-2 px-4 rounded-lg transition-transform duration-300 ease-in-out transform hover:scale-105">
+                            Register Now
+                        </a>
+                    </nav>
 
-                <!-- Mobile Menu Button (Hamburger) -->
-                <div class="md:hidden">
-                    <button id="mobile-menu-button" class="text-white focus:outline-none">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
-                        </svg>
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                     </button>
                 </div>
-
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-6">
-                    <a href="#hero" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Home</a>
-                    <a href="#features" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Features</a>
-                    <a href="#offer" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">What We Offer</a>
-                    <a href="#services" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Services</a>
-                    <a href="#contact" class="text-gray-300 hover:text-white transition duration-300 rounded-lg">Contact</a>
-                </div>
             </div>
-
-            <!-- Mobile Menu (Hidden by default) -->
-            <div id="mobile-menu" class="hidden md:hidden mt-4 space-y-2">
-                <a href="#hero" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Home</a>
-                <a href="#features" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Features</a>
-                <a href="#offer" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">What We Offer</a>
-                <a href="#services" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Services</a>
-                <a href="#contact" class="block text-gray-300 hover:text-white transition duration-300 px-3 py-2 rounded-md">Contact</a>
-            </div>
-        </nav>
-
-        <!-- Hero Section -->
-        <header id="hero" class="relative hero-background h-screen flex items-center justify-center text-white overflow-hidden pt-16"> <!-- Added pt-16 for navbar offset -->
-            <div class="absolute inset-0 bg-black opacity-40"></div>
-
-            <div class="relative z-10 text-center p-6 sm:p-8 md:p-12 max-w-4xl mx-auto section-hidden">
-                <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-4 rounded-lg">
-                    Discover the Future of Web Experiences
-                </h1>
-                <p class="text-lg sm:text-xl md:text-2xl font-light mb-8 opacity-90 rounded-lg">
-                    Immerse your visitors with stunning 3D backgrounds and modern design.
-                </p>
-                <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
-                    Get Started
-                </button>
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-white/90 backdrop-blur-sm border-t border-gray-200">
+                <a href="#symposium" class="block py-2 text-gray-600 hover:text-green-800">Symposium</a>
+                <a href="#hackathon" class="block py-2 text-gray-600 hover:text-green-800">Hackathon</a>
+                <a href="#schedule" class="block py-2 text-gray-600 hover:text-green-800">Schedule</a>
+                <a href="#speakers" class="block py-2 text-gray-600 hover:text-green-800">Speakers</a>
+                <a href="#register" class="block mt-2 w-full text-center bg-green-800 hover:bg-green-900 text-white font-medium py-2 px-4 rounded-lg">Register</a>
             </div>
         </header>
 
-        <!-- Example Content Section 1: Features -->
-        <section id="features" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/50 section-hidden">
-            <div class="max-w-6xl mx-auto text-center">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">Our Features</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg transform hover:scale-105 transition duration-300 ease-in-out">
-                        <h3 class="text-xl font-semibold mb-3 text-white">Interactive 3D</h3>
-                        <p class="text-gray-300">Engage users with dynamic and interactive 3D models right on your homepage.</p>
-                    </div>
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg transform hover:scale-105 transition duration-300 ease-in-out">
-                        <h3 class="text-xl font-semibold mb-3 text-white">Modern Design</h3>
-                        <p class="text-gray-300">Leverage Tailwind CSS for a sleek, responsive, and highly customizable interface.</p>
-                    </div>
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg transform hover:scale-105 transition duration-300 ease-in-out">
-                        <h3 class="text-xl font-semibold mb-3 text-white">Performance Optimized</h3>
-                        <p class="text-gray-300">Built with efficiency in mind to ensure smooth loading and user experience.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Example Content Section 2: What We Offer -->
-        <section id="offer" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/70 section-hidden">
-            <div class="max-w-6xl mx-auto text-center">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">What We Offer</h2>
-                <div class="flex flex-col md:flex-row items-center justify-center gap-12">
-                    <div class="md:w-1/2">
-                        <img src="https://placehold.co/600x400/334155/FFFFFF?text=Awesome+Product" alt="Awesome Product" class="rounded-xl shadow-xl w-full h-auto object-cover">
-                    </div>
-                    <div class="md:w-1/2 text-left bg-black/50 p-6 rounded-xl shadow-lg">
-                        <p class="text-lg mb-4 text-gray-300">
-                            Our platform provides a unique blend of cutting-edge technology and user-centric design.
-                            From immersive experiences to robust backend solutions, we cover all your needs.
+        <!-- Main Content -->
+        <main>
+            <!-- Hero Section -->
+            <section class="hero-bg h-screen flex items-center justify-center">
+                <div class="container mx-auto px-6 text-center">
+                    <div>
+                        <h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4">
+                            Building the Future with Mass Timber
+                        </h1>
+                        <p class="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto mb-8">
+                            Join us for a groundbreaking symposium and hackathon dedicated to advancing sustainable construction through technology and innovation.
                         </p>
-                        <ul class="list-disc list-inside text-gray-300 space-y-2">
-                            <li>Seamless 3D integration</li>
-                            <li>Fully responsive layouts</li>
-                            <li>Easy customization with Tailwind</li>
-                            <li>Scalable architecture</li>
-                        </ul>
+                        <a href="#register" class="bg-green-800 hover:bg-green-900 text-white font-bold py-3 px-8 rounded-full transition-transform duration-300 ease-in-out transform hover:scale-105 inline-block">
+                            Secure Your Spot
+                        </a>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- New Content Section 3: Our Services -->
-        <section id="services" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/50 section-hidden">
-            <div class="max-w-6xl mx-auto text-center">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">Our Services</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
-                        <h3 class="text-xl font-semibold mb-3 text-white">Web Development</h3>
-                        <p class="text-gray-300">Building responsive and high-performance websites tailored to your needs.</p>
-                    </div>
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
-                        <h3 class="text-xl font-semibold mb-3 text-white">3D Modeling & Animation</h3>
-                        <p class="text-gray-300">Creating stunning 3D assets and animations for immersive web experiences.</p>
-                    </div>
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
-                        <h3 class="text-xl font-semibold mb-3 text-white">UI/UX Design</h3>
-                        <p class="text-gray-300">Crafting intuitive and engaging user interfaces for optimal user satisfaction.</p>
-                    </div>
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
-                        <h3 class="text-xl font-semibold mb-3 text-white">Consulting</h3>
-                        <p class="text-gray-300">Expert advice and strategy to elevate your digital presence.</p>
-                    </div>
-                    <div class="bg-black/60 p-6 rounded-xl shadow-lg">
-                        <h3 class="text-xl font-semibold mb-3 text-white">Maintenance & Support</h3>
-                        <p class="text-gray-300">Ensuring your website remains up-to-date, secure, and performs flawlessly.</p>
+            <!-- Symposium Section -->
+            <section id="symposium" class="py-20 fade-in-section">
+                <div class="container mx-auto px-6">
+                    <div class="grid md:grid-cols-2 gap-12 items-center content-card p-8 rounded-lg">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-900 mb-4">The Symposium</h2>
+                            <p class="text-gray-600 mb-6">
+                                Dive deep into the world of mass timber with leading architects, engineers, and researchers. Our symposium features keynote presentations, expert panels, and workshops on the latest trends, technologies, and projects shaping the future of sustainable building.
+                            </p>
+                            <ul class="space-y-3 text-gray-700">
+                                <li class="flex items-start"><span class="text-green-800 font-bold mr-3 mt-1">&#10003;</span><span>Cutting-edge fabrication techniques</span></li>
+                                <li class="flex items-start"><span class="text-green-800 font-bold mr-3 mt-1">&#10003;</span><span>Digital workflows and BIM integration</span></li>
+                                <li class="flex items-start"><span class="text-green-800 font-bold mr-3 mt-1">&#10003;</span><span>Sustainable forestry and material lifecycle</span></li>
+                            </ul>
+                        </div>
+                        <div class="rounded-lg overflow-hidden shadow-xl">
+                             <img src="https://images.unsplash.com/photo-1551821739-242419875f28?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Modern timber building interior" class="w-full h-full object-cover">
+                        </div>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- New Content Section 4: Call to Action / Testimonials -->
-        <section id="testimonials" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/70 section-hidden">
-            <div class="max-w-4xl mx-auto text-center">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">What Our Clients Say</h2>
-                <div class="bg-black/60 p-8 rounded-xl shadow-lg mb-8">
-                    <p class="text-xl italic text-gray-200 mb-4">
-                        "The 3D background truly transformed our website! It's visually stunning and incredibly unique. The team was a pleasure to work with."
-                    </p>
-                    <p class="font-semibold text-white">- Jane Doe, CEO of InnovateCorp</p>
+            <!-- Hackathon Section -->
+            <section id="hackathon" class="py-20 fade-in-section">
+                <div id="vanta-hackathon-bg"></div>
+                <div class="container mx-auto px-6">
+                    <div class="grid md:grid-cols-2 gap-12 items-center">
+                        <div class="rounded-lg overflow-hidden shadow-xl md:order-2">
+                            <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" alt="Team collaborating on a project" class="w-full h-full object-cover rounded-lg">
+                        </div>
+                        <div class="md:order-1 content-card p-8 rounded-lg">
+                            <h2 class="text-3xl font-bold text-gray-900 mb-4">The Hackathon</h2>
+                            <p class="text-gray-600 mb-6">
+                               Are you a developer, designer, or engineer with a passion for innovation? Join our 48-hour hackathon to create solutions for real-world challenges in the mass timber industry. Collaborate with peers, learn from mentors, and compete for prizes.
+                            </p>
+                            <ul class="space-y-3 text-gray-700">
+                                <li class="flex items-start"><span class="text-green-800 font-bold mr-3 mt-1">&#10003;</span><span>Develop software for material optimization</span></li>
+                                <li class="flex items-start"><span class="text-green-800 font-bold mr-3 mt-1">&#10003;</span><span>Design parametric tools for timber structures</span></li>
+                                <li class="flex items-start"><span class="text-green-800 font-bold mr-3 mt-1">&#10003;</span><span>Create data visualizations for carbon impact</span></li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-                <button class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-500 focus:ring-opacity-50">
-                    Join Our Satisfied Clients
-                </button>
-            </div>
-        </section>
+            </section>
 
-        <!-- Contact Section -->
-        <section id="contact" class="py-16 px-4 sm:px-6 lg:px-8 bg-black/80 section-hidden">
-            <div class="max-w-2xl mx-auto text-center">
-                <h2 class="text-3xl sm:text-4xl font-bold mb-8 text-blue-400">Get in Touch</h2>
-                <p class="text-lg text-gray-300 mb-8">
-                    Have a project in mind or just want to say hello? We'd love to hear from you!
-                </p>
-                <form class="space-y-6 text-left">
-                    <div>
-                        <label for="name" class="block text-gray-300 text-sm font-bold mb-2">Name</label>
-                        <input type="text" id="name" name="name" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-200/90 border-gray-600" placeholder="Your Name">
+            <!-- Schedule Section -->
+            <section id="schedule" class="py-20 fade-in-section">
+                <div class="container mx-auto px-6 content-card p-8 rounded-lg">
+                    <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Event Schedule</h2>
+                    
+                    <!-- Tabs -->
+                    <div class="flex justify-center mb-8 rounded-lg p-1 bg-gray-200 max-w-md mx-auto">
+                        <button data-tab="day1" class="schedule-tab tab-active flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-300">Day 1: Symposium</button>
+                        <button data-tab="day2" class="schedule-tab tab-inactive flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-300">Day 2: Workshops</button>
+                        <button data-tab="hackathon-days" class="schedule-tab tab-inactive flex-1 py-2 px-4 rounded-md text-sm font-medium transition-colors duration-300">Hackathon</button>
                     </div>
-                    <div>
-                        <label for="email" class="block text-gray-300 text-sm font-bold mb-2">Email</label>
-                        <input type="email" id="email" name="email" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-200/90 border-gray-600" placeholder="your@example.com">
+
+                    <!-- Schedule Content -->
+                    <div class="max-w-3xl mx-auto">
+                        <!-- Day 1 Content -->
+                        <div id="day1" class="schedule-content space-y-6">
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">09:00 AM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Registration & Morning Coffee</h3>
+                                    <p class="text-sm text-gray-600">Networking and Welcome</p>
+                                </div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">10:00 AM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Keynote: The Future is Timber</h3>
+                                    <p class="text-sm text-gray-600">Dr. Elena Vasquez</p>
+                                </div>
+                            </div>
+                             <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">12:30 PM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Lunch Break</h3>
+                                </div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">02:00 PM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Panel: Digital Fabrication</h3>
+                                    <p class="text-sm text-gray-600">Moderated by Ben Carter</p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Day 2 Content -->
+                        <div id="day2" class="schedule-content hidden space-y-6">
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">09:30 AM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Workshop: Parametric Design in Grasshopper</h3>
+                                </div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">01:30 PM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Workshop: Life Cycle Analysis (LCA) for Timber</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Hackathon Content -->
+                        <div id="hackathon-days" class="schedule-content hidden space-y-6">
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">Day 1, 06:00 PM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Hackathon Kick-off & Team Formation</h3>
+                                </div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">Day 2, All Day</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Hacking & Mentor Check-ins</h3>
+                                </div>
+                            </div>
+                            <div class="bg-gray-100 p-4 rounded-lg flex items-center">
+                                <div class="w-24 text-right mr-4 text-green-800 font-bold">Day 3, 02:00 PM</div>
+                                <div class="flex-1">
+                                    <h3 class="font-semibold text-gray-800">Final Demos & Judging</h3>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label for="message" class="block text-gray-300 text-sm font-bold mb-2">Message</label>
-                        <textarea id="message" name="message" rows="5" class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-900 leading-tight focus:outline-none focus:shadow-outline bg-gray-200/90 border-gray-600" placeholder="Your message..."></textarea>
+                </div>
+            </section>
+
+            <!-- Speakers Section -->
+            <section id="speakers" class="py-20 fade-in-section">
+                <div id="vanta-bg"></div>
+                <div class="container mx-auto px-6 content-card p-8 rounded-lg">
+                    <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">Featured Speakers</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <!-- Speaker 1 -->
+                        <div class="text-center bg-white/50 p-6 rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                            <img class="w-24 h-24 mx-auto rounded-full mb-4" src="https://placehold.co/100x100/166534/FFFFFF?text=EV" alt="Speaker 1">
+                            <h3 class="font-bold text-lg text-gray-900">Dr. Elena Vasquez</h3>
+                            <p class="text-sm text-green-800 font-bold">Structural Engineer & Researcher</p>
+                        </div>
+                        <!-- Speaker 2 -->
+                        <div class="text-center bg-white/50 p-6 rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                            <img class="w-24 h-24 mx-auto rounded-full mb-4" src="https://placehold.co/100x100/166534/FFFFFF?text=BC" alt="Speaker 2">
+                            <h3 class="font-bold text-lg text-gray-900">Ben Carter</h3>
+                            <p class="text-sm text-green-800 font-bold">Lead Architect, Timber Arch</p>
+                        </div>
+                        <!-- Speaker 3 -->
+                        <div class="text-center bg-white/50 p-6 rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                            <img class="w-24 h-24 mx-auto rounded-full mb-4" src="https://placehold.co/100x100/166534/FFFFFF?text=SL" alt="Speaker 3">
+                            <h3 class="font-bold text-lg text-gray-900">Samantha Lee</h3>
+                            <p class="text-sm text-green-800 font-bold">CEO, CarbonBuild Tech</p>
+                        </div>
+                        <!-- Speaker 4 -->
+                        <div class="text-center bg-white/50 p-6 rounded-lg shadow-lg transform hover:-translate-y-2 transition-transform duration-300">
+                            <img class="w-24 h-24 mx-auto rounded-full mb-4" src="https://placehold.co/100x100/166534/FFFFFF?text=MK" alt="Speaker 4">
+                            <h3 class="font-bold text-lg text-gray-900">Marco Kim</h3>
+                            <p class="text-sm text-green-800 font-bold">Robotics & Fabrication Expert</p>
+                        </div>
                     </div>
-                    <div class="text-center">
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50">
-                            Send Message
-                        </button>
+                </div>
+            </section>
+
+            <!-- Registration Section -->
+            <section id="register" class="py-20 fade-in-section">
+                <div class="container mx-auto px-6 text-center">
+                    <div class="content-card p-8 rounded-lg max-w-3xl mx-auto">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Join the Movement</h2>
+                        <p class="text-gray-600 max-w-2xl mx-auto mb-8">
+                            Whether you're looking to learn, network, or build, MassTimberNexus is the place to be. Register now to be part of the change.
+                        </p>
+                        <a href="#" class="bg-green-800 hover:bg-green-900 text-white font-bold py-4 px-10 rounded-full transition-transform duration-300 ease-in-out transform hover:scale-105 inline-block text-lg">
+                            Register for the Event
+                        </a>
                     </div>
-                </form>
-            </div>
-        </section>
+                </div>
+            </section>
+        </main>
 
         <!-- Footer -->
-        <footer class="bg-black/90 py-8 px-4 sm:px-6 lg:px-8 text-center text-gray-400">
-            <p>&copy; 2025 Your Company. All rights reserved.</p>
-            <div class="mt-4 flex justify-center space-x-4">
-                <a href="#" class="hover:text-white transition duration-200">Privacy Policy</a>
-                <a href="#" class="hover:text-white transition duration-200">Terms of Service</a>
+        <footer class="bg-white/80 backdrop-blur-sm border-t border-gray-200">
+            <div class="container mx-auto px-6 py-8 text-center text-gray-600">
+                <p>&copy; 2025 MassTimberNexus. All Rights Reserved.</p>
+                <p class="text-sm mt-2">A conceptual template for a brighter, more sustainable future.</p>
             </div>
         </footer>
     </div>
 
     <script>
-        // Smooth scroll behavior is enabled via 'scroll-behavior: smooth;' in body style.
+        // JavaScript for mobile menu toggle, schedule tabs, and animations
 
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const mobileMenu = document.getElementById('mobile-menu');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vanta.js initialization
+            if (window.VANTA) {
+                VANTA.TOPOLOGY({
+                  el: "#vanta-bg",
+                  mouseControls: false,
+                  touchControls: false,
+                  gyroControls: false,
+                  minHeight: 200.00,
+                  minWidth: 200.00,
+                  scale: 1.00,
+                  scaleMobile: 1.00,
+                  color: 0x166534, // green-800
+                  backgroundColor: 0xf9fafb // bg-gray-50
+                });
+                VANTA.DOTS({
+                  el: "#vanta-hackathon-bg",
+                  mouseControls: true,
+                  touchControls: true,
+                  gyroControls: false,
+                  minHeight: 200.00,
+                  minWidth: 200.00,
+                  scale: 1.00,
+                  scaleMobile: 1.00,
+                  color: 0x16a34a,
+                  color2: 0x166534,
+                  backgroundColor: 0x111827,
+                  size: 3.5,
+                  spacing: 35.00
+                })
+            }
 
-        if (mobileMenuButton && mobileMenu) {
+            // Mobile menu toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
             mobileMenuButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
-
+            
             // Close mobile menu when a link is clicked
-            mobileMenu.querySelectorAll('a').forEach(link => {
+            const mobileNavLinks = mobileMenu.querySelectorAll('a');
+            mobileNavLinks.forEach(link => {
                 link.addEventListener('click', () => {
                     mobileMenu.classList.add('hidden');
                 });
             });
-        }
 
-        // Intersection Observer for section transitions
-        const sections = document.querySelectorAll('section, header'); // Select all sections and the header
-        const observerOptions = {
-            root: null, // viewport
-            rootMargin: '0px',
-            threshold: 0.2 // Trigger when 20% of the section is visible
-        };
+            // Schedule tabs functionality
+            const tabs = document.querySelectorAll('.schedule-tab');
+            const contents = document.querySelectorAll('.schedule-content');
 
-        const sectionObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.remove('section-hidden');
-                    entry.target.classList.add('section-visible');
-                    // Optionally, unobserve once visible if you only want the animation to play once
-                    // observer.unobserve(entry.target);
-                } else {
-                    // Optional: Re-hide if scrolling away, uncomment if you want repeatable animation
-                    // entry.target.classList.remove('section-visible');
-                    // entry.target.classList.add('section-hidden');
-                }
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Deactivate all tabs
+                    tabs.forEach(item => {
+                        item.classList.remove('tab-active');
+                        item.classList.add('tab-inactive');
+                    });
+
+                    // Activate the clicked tab
+                    tab.classList.add('tab-active');
+                    tab.classList.remove('tab-inactive');
+
+                    // Hide all content
+                    contents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+
+                    // Show the content corresponding to the clicked tab
+                    const targetId = tab.getAttribute('data-tab');
+                    const targetContent = document.getElementById(targetId);
+                    if (targetContent) {
+                        targetContent.classList.remove('hidden');
+                    }
+                });
             });
-        }, observerOptions);
 
-        // Add the 'section-hidden' class initially and observe
-        sections.forEach(section => {
-            if (section.id !== 'hero') { // Hero section can be visible by default or animated on load
-                section.classList.add('section-hidden');
-            }
-            sectionObserver.observe(section);
+            // Fade-in animations on scroll
+            const sections = document.querySelectorAll('.fade-in-section');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+            sections.forEach(section => {
+                observer.observe(section);
+            });
         });
-
-        // Animate hero section on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const heroContent = document.querySelector('#hero .relative.z-10');
-            if (heroContent) {
-                heroContent.classList.add('section-visible');
-            }
-        });
-
     </script>
 </body>
 </html>
