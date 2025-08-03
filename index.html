@@ -105,12 +105,16 @@
         <a-assets>
             <!-- Corrected the src attribute for the GLB model -->
             <a-asset-item id="helmet" src="House.glb"></a-asset-item>
+            <a-asset-item id="duck" src="Sky.glb"></a-asset-item>
         </a-assets>
         
-        <!-- GLB Model Entity -->
+         <!-- GLB Model Entity 1: House -->
         <a-entity gltf-model="#helmet" position="0 0.5 -4" scale="1.5 1.5 1.5">
-             <a-animation attribute="rotation" dur="20000" to="0 360 0" repeat="indefinite" easing="linear"></a-animation>
         </a-entity>
+
+        <!-- GLB Model Entity 2: Sky -->
+        <a-entity gltf-model="#duck" position="0 1 0" scale="1 1 1">
+       </a-entity>
 
         <!-- Lighting -->
         <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
