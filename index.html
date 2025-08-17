@@ -112,7 +112,7 @@
         z-index: 0;
       }
       #speakers-bg {
-        background-image: url('./Grain.jpg');
+        background-image: url('./Grain.png');
         background-size: cover;
         background-position: center;
         /* background-attachment: fixed;  -- removed for smoother mobile performance */
@@ -1096,6 +1096,24 @@
                 mobileMenu.classList.toggle('hidden');
             });
         }
+
+        // Close mobile menu when clicking outside or on a link
+        document.addEventListener('click', (e) => {
+          const isClickInside = mobileMenu.contains(e.target) || hamburgerButton.contains(e.target);
+          if (!isClickInside && !mobileMenu.classList.contains('hidden')) {
+            mobileMenu.classList.add('hidden');
+          }
+        });
+
+        // Also close menu when clicking a nav link
+        const navLinks = mobileMenu.querySelectorAll('a');
+        navLinks.forEach(link => {
+          link.addEventListener('click', () => {
+            if (!mobileMenu.classList.contains('hidden')) {
+              mobileMenu.classList.add('hidden');
+            }
+          });
+        });
         
         // Vanta.js animations (init only when Hackathon is visible)
         (function(){
