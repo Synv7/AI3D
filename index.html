@@ -1,1209 +1,1345 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Symposium & Hackathon</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mass Timber Nexus | Symposium & Hackathon 2025</title>
-    
-    <!-- A-Frame (Loaded first to establish a stable Three.js instance) -->
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
-    <!-- Vanta.js dependencies (p5.js is needed, but the separate three.js is removed to prevent conflicts) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.1.9/p5.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.topology.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.dots.min.js"></script>
-
-    <!-- Tailwind CSS (Using stable v3 CDN) -->
+    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Google Fonts: Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Custom Styles -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vercel/geist-font@1/dist/geist.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
     <style>
-        html { background-color: transparent; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: transparent; /* Changed to transparent to show 3D background */
-            color: #1F2937; /* text-gray-800 */
-        }
-        #site-background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 0; /* above page background, below content */
-            pointer-events: none; /* keep page interactive */
-        }
-        /* Force-hide the A-Frame VR button */
-        .a-enter-vr-button {
-            display: none !important;
-        }
-        .content-wrapper {
-            position: relative;
-            z-index: 1;
-        }
-        .hero-bg {
-            /* Restored the hero image */
-            background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://synv7.github.io/AI3D/hero.jpg');
-            background-size: cover;
-            background-position: center;
-        }
-        .tab-active {
-            background-color: #166534; /* bg-green-800 */
-            color: white;
-        }
-        .tab-inactive {
-            background-color: #E5E7EB; /* bg-gray-200 */
-            color: #4B5563; /* text-gray-600 */
-        }
-        /* Styles for fade-in animations */
-        .fade-in-section {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s cubic-bezier(0.645, 0.045, 0.355, 1), transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
-        }
-        .fade-in-section.is-visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        /* Add a backdrop for readability */
-        .content-card {
-             background-color: rgba(255, 255, 255, 0.92);
-             backdrop-filter: blur(10px);
-             -webkit-backdrop-filter: blur(10px);
-             border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        #hackathon, #speakers, #challenges {
-            position: relative;
-        }
-        #vanta-bg, #vanta-hackathon-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-        }
+      body {
+        font-family: 'Geist Sans', sans-serif;
+        background-color: #020706; /* Ebony */
+      }
+      /* Smooth native scroll */
+      html { scroll-behavior: smooth; }
 
-        /* --- New Styles for Symposium & Hackathon Sections --- */
-        :root {
-            --timber: #8a5a2b; /* A warm brown for timber theme */
-            --timber-dark: #5c3a1a;
-            --forest: #228B22; /* A forest green */
-            --background: #f9fafb;
-            --card: #ffffff;
-            --border: #e5e7eb;
-            --foreground: #111827;
-            --timber-foreground: #ffffff;
-            --muted-foreground: #6b7280;
-        }
-
-        .bg-timber { background-color: var(--timber); }
-        .text-timber { color: var(--timber); }
-        .hover\:text-timber-dark:hover { color: var(--timber-dark); }
-        .text-forest { color: var(--forest); }
-        .text-timber-dark { color: var(--timber-dark); }
-        .bg-timber\/10 { background-color: rgba(138, 90, 43, 0.1); }
-        .border-timber\/20 { border-color: rgba(138, 90, 43, 0.2); }
-        .bg-forest\/10 { background-color: rgba(34, 139, 34, 0.1); }
-        .border-forest\/20 { border-color: rgba(34, 139, 34, 0.2); }
-        .bg-card\/95 { background-color: rgba(255, 255, 255, 0.95); }
-        .border-border\/50 { border-color: rgba(229, 231, 235, 0.5); }
-        .text-foreground { color: var(--foreground); }
-        .text-foreground\/90 { color: rgba(17, 24, 39, 0.9); }
-        .text-card-foreground\/85 { color: rgba(17, 24, 39, 0.85); }
-        .shadow-natural { box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); }
-        .hover\:shadow-timber:hover { box-shadow: 0 8px 25px rgba(138, 90, 43, 0.15); }
-        .text-muted-foreground { color: var(--muted-foreground); }
-        .text-timber-foreground { color: var(--timber-foreground); }
-
-        .bg-building-pattern {
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d1d5db' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
-        .bg-forest-pattern {
-             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='49' viewBox='0 0 28 49'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='hexagons' fill='%239C92AC' fill-opacity='0.1' fill-rule='nonzero'%3E%3Cpath d='M13.99 9.25l13 7.5v15l-13 7.5L1 31.75v-15l12.99-7.5zM3 17.9v12.7l10.99 6.34 11-6.35V17.9l-11-6.34L3 17.9zM0 15l12.99-7.5L26 15v18.5l-13 7.5L0 33.5V15z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-        }
+      /* Skip rendering offscreen sections until scrolled to */
+      section { content-visibility: auto; contain-intrinsic-size: 1000px; }
+      /* Custom color definitions for the new theme */
+      :root {
+        --ebony: #020706;
+        --ivory: #f4f5f5;
+        --tan: #745800;
+        --forest-green: #0d6049;
         
-        .bg-gradient-timber { background-image: linear-gradient(to right, var(--timber), var(--timber-dark)); }
-        .bg-gradient-forest { background-image: linear-gradient(to right, var(--forest), #1a642e); }
-        .bg-gradient-timber-dark { background-image: linear-gradient(to right, var(--timber-dark), #422a11); }
+        --card-bg-light: rgba(244, 245, 245, 0.15); /* Light Ivory glass effect */
+        --card-bg-dark: rgba(2, 7, 6, 0.6); /* Darker, more transparent Ebony glass effect */
+        --border-color: rgba(244, 245, 245, 0.2); /* Ivory with transparency */
+      }
+      .bg-card-light { background-color: var(--card-bg-light); }
+      .bg-card-dark { background-color: var(--card-bg-dark); }
+      .border-border { border-color: var(--border-color); }
+      .text-ivory { color: var(--ivory); }
+      .text-tan { color: var(--tan); }
+      .border-tan { border-color: var(--tan); }
+      .text-forest-green { color: var(--forest-green); }
+      .border-forest-green { border-color: var(--forest-green); }
+      .text-ebony { color: var(--ebony); }
+      .bg-ivory { background-color: var(--ivory); }
+      .border-ivory { border-color: var(--ivory); }
+      .bg-tan { background-color: var(--tan); }
+      .bg-forest-green { background-color: var(--forest-green); }
+      .shadow-natural { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+      .hover\:shadow-forest-green:hover { box-shadow: 0 8px 25px rgba(13, 96, 73, 0.3); }
+
+      /* Gradient styles for challenge cards */
+      .bg-gradient-forest { background: linear-gradient(45deg, var(--forest-green), #118262); }
+      
+      /* Original colors for Schedule/Venue sections */
+      .text-timber { color: #8B4513; }
+      .text-timber-dark { color: #5A2D0C; }
+      .bg-timber { background-color: #8B4513; }
+      .bg-timber-dark { background-color: #5A2D0C; }
+      .bg-timber\/10 { background-color: rgba(139, 69, 19, 0.1); }
+      .border-timber\/20 { border-color: rgba(139, 69, 19, 0.2); }
+      .bg-gradient-timber { background: linear-gradient(45deg, #8B4513, #a17900); }
+      .text-timber-foreground { color: #fff; }
+      .text-forest { color: #228B22; }
+      .bg-forest { background-color: #228B22; }
+      .bg-forest\/10 { background-color: rgba(34, 139, 34, 0.1); }
+      .border-forest\/20 { border-color: rgba(34, 139, 34, 0.2); }
+      .text-muted-foreground { color: #555; }
+      .text-foreground { color: var(--ebony); }
+      .text-card-foreground\/85 { color: var(--ebony); }
 
 
-        /* --- Fix for responsive video --- */
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            height: 0;
-            overflow: hidden;
-            max-width: 100%;
-        }
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
+      /* Container to hold the A-Frame scene in the background */
+      #aframe-scene-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1; /* Puts the scene behind other content */
+      }
+      /* Container for all foreground content */
+      #content-container {
+        position: relative;
+        z-index: 1; /* Ensures this content is on top */
+        color: var(--ivory); /* Setting default text color */
+      }
+      /* Hero section background image and overlay */
+      .hero-section-bg {
+        background-image: url('https://synv7.github.io/AI3D/hero.jpg');
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+      .hero-section-bg::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(2, 7, 6, 0.6); /* Ebony overlay */
+      }
+
+      /* Hackathon & Speakers Section Styles */
+      #hackathon, #speakers, #schedule, #venue, #register {
+        position: relative;
+      }
+      #vanta-hackathon-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+      #speakers-bg {
+        background-image: url('./Grain.jpg');
+        background-size: cover;
+        background-position: center;
+        /* background-attachment: fixed;  -- removed for smoother mobile performance */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 110%; /* taller to avoid edge gaps while parallaxing */
+        z-index: 0;
+        will-change: transform;
+        transform: translateY(0);
+        pointer-events: none;
+      }
+      .content-card {
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--border-color);
+      }
+      /* Promote cards to their own layer to reduce paint thrash */
+      .content-card { will-change: transform, opacity; }
+      .gpu { transform: translateZ(0); }
+      .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+        border-radius: 0.5rem;
+      }
+      .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
 
 
-        /* Animation for stats and new sections */
-        @keyframes scale-in {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+      /* Animation for the stats section */
+      @keyframes scale-in {
+        from {
+          transform: scale(0.9);
+          opacity: 0;
         }
-        @keyframes fade-in {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        to {
+          transform: scale(1);
+          opacity: 1;
         }
-        @keyframes slide-up {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-scale-in { animation: scale-in 0.5s both; }
-        .animate-fade-in { animation: fade-in 0.7s both; }
-        .animate-slide-up { animation: slide-up 0.7s 0.2s both; }
+      }
+      .animate-scale-in {
+        animation: scale-in 0.5s ease-out forwards;
+        opacity: 0; /* Start hidden */
+      }
+       /* Animations for the new section */
+      @keyframes fade-in {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slide-up {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      .animate-fade-in {
+        animation: fade-in 0.8s ease-out forwards;
+      }
+      .animate-slide-up {
+        animation: slide-up 0.8s ease-out forwards;
+      }
+    .logistics-text {
+      color: var(--ivory);
+      font-weight: 600;
+      font-size: 1rem;
+    }
+    a-enter-vr, .a-enter-vr-button { display: none !important; }
+    /* Responsive fade-in/out cards */
+    .reveal-card { 
+      opacity: 0; 
+      transform: translateY(16px) scale(0.98); 
+      transition: opacity 600ms ease, transform 600ms ease, filter 600ms ease;
+      will-change: opacity, transform;
+    }
+    .reveal-card.in-view { 
+      opacity: 1; 
+      transform: none; 
+    }
+    /* Optional stagger via CSS variable (ms) */
+    .reveal-card { transition-delay: var(--reveal-delay, 0ms); }
+    
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal-card { 
+        transition: opacity 300ms ease; 
+        transform: none !important; 
+      }
+    }
+    
+    /* Ensure media scales responsively */
+    img, video { max-width: 100%; height: auto; }
+    iframe { width: 100%; height: auto; }
+    /* Transparent background for speaker cards */
+    #speakers .content-card {
+      background-color: rgba(255, 255, 255, 0); /* fully transparent */
+      backdrop-filter: blur(6px);
+    }
+      /* Lightweight YouTube embed */
+      .yt-lite { position: absolute; inset: 0; background-position: center; background-size: cover; cursor: pointer; }
+      .yt-lite::before { content: ""; position: absolute; inset: 0; background: rgba(0,0,0,0.2); transition: opacity 200ms ease; }
+      .yt-lite:hover::before { opacity: 0.1; }
+      .yt-play-button { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 68px; height: 48px; border: 0; border-radius: 8px; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; }
+      .yt-play-button::before { content: ""; display: block; border-style: solid; border-width: 12px 0 12px 20px; border-color: transparent transparent transparent #fff; margin-left: 3px; }
+
+      /* Reduced effects mode for low-power/mobile */
+      .effects-min .content-card { backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); box-shadow: none; border-color: rgba(244,245,245,0.12); }
+      .effects-min .hover\:shadow-forest-green:hover { box-shadow: none; }
+      .effects-min .reveal-card { transition-duration: 300ms; transform: none !important; }
+      @media (max-width: 640px) {
+        .content-card { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+      }
     </style>
-</head>
-<body class="antialiased">
+  </head>
+  <body>
 
-    <!-- 3D Site Background -->
-    <a-scene id="site-background" embedded vr-mode-ui="enabled: false" renderer="alpha: true; colorManagement: true;" device-orientation-permission-ui="enabled: false">
-        <a-assets>
-            <!-- Updated to use live URLs for the GLB models -->
-            <a-asset-item id="helmet" src="https://synv7.github.io/AI3D/House.glb" crossorigin="anonymous"></a-asset-item>
-            <a-asset-item id="duck" src="https://synv7.github.io/AI3D/Sky.glb" crossorigin="anonymous"></a-asset-item>
-        </a-assets>
-        
-         <!-- GLB Model Entity 1: House -->
-        <a-entity id="house-model" gltf-model="#helmet" position="0 0 -4.8" rotation="0 0 0" scale="1.5 1.5 1.5">
-        </a-entity>
+    <!-- A-Frame Scene Container -->
+    <div id="aframe-scene-container">
+      <a-scene embedded vr-mode-ui="enabled: false" xr-mode-ui="enabled: false" renderer="alpha: true; antialias: false; precision: mediump; colorManagement: true; sortObjects: false; physicallyCorrectLights: false; powerPreference: low-power" device-orientation-permission-ui="enabled: false">
+        <a-entity camera look-controls position="-0.14245 1.57474 14.99774" rotation="19.70974815250033 361.7655518456022 0" light="color: #ffc677; intensity: 1.32"></a-entity>
+        <a-entity light="type: ambient; intensity: 0.6"></a-entity>
+        <a-entity light="type: directional; intensity: 0.8" position="1 3 2"></a-entity>
+        <a-entity gltf-model="url(https://synv7.github.io/AI3D/Sky.glb)" scale="10 10 10" position="0 -2 0"></a-entity>
+        <a-entity gltf-model="url(https://synv7.github.io/AI3D/House.glb)" scale="5 5 5" position="0 -0.89484 0"></a-entity>
+      </a-scene>
+    </div>
 
-        <!-- GLB Model Entity 2: Sky -->
-        <a-entity id="sky-model" gltf-model="#duck" position="0 1 0" scale="1 1 1"></a-entity>
-
-        <!-- Lighting -->
-        <a-light type="ambient" color="#FFF" intensity="0.7"></a-light>
-        <a-light type="directional" intensity="0.5" position="-1 2 3"></a-light>
-        
-        <!-- Camera - Fixed static position and rotation, all movement/animation controls removed -->
-        <a-camera id="camera" position="0 1.6 0" rotation="0 0 0" wasd-controls-enabled="false" look-controls-enabled="false"></a-camera>
-    </a-scene>
-
-    <div class="content-wrapper">
-        <!-- Header -->
-        <header id="header" class="bg-white/80 backdrop-blur-sm sticky top-0 z-50 border-b border-gray-200">
-            <div class="container mx-auto px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <!-- Logo/Brand Name -->
-                    <a href="#" class="text-2xl font-bold text-gray-900 tracking-wider">
-                        MassTimber<span class="text-green-800 font-bold">Nexus</span>
+    <!-- Foreground Content -->
+    <div id="content-container" class="flex flex-col">
+        <!-- Glassmorphism Navbar -->
+        <header class="sticky top-0 z-50">
+            <div class="relative py-4 px-4 sm:px-6 lg:px-8 bg-ivory/20 backdrop-blur-lg border-b border-ebony/20">
+                <nav class="flex justify-between items-center max-w-7xl mx-auto">
+                    <a href="#" class="text-2xl font-bold text-ebony tracking-wider">
+                        MassTimber<span class="text-forest-green font-bold">Nexus</span>
                     </a>
                     
                     <!-- Desktop Navigation -->
                     <nav class="hidden md:flex space-x-8 items-center">
-                        <a href="#conference" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Symposium</a>
-                        <a href="#hackathon" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Hackathon</a>
-                        <a href="#speakers" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Speakers</a>
-                        <a href="#schedule" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Schedule</a>
+                        <a href="#conference" class="text-ebony hover:text-black transition-colors duration-300">Symposium</a>
+                        <a href="#hackathon" class="text-ebony hover:text-black transition-colors duration-300">Hackathon</a>
+                        <a href="#speakers" class="text-ebony hover:text-black transition-colors duration-300">Speakers</a>
+                        <a href="#schedule" class="text-ebony hover:text-black transition-colors duration-300">Schedule</a>
 
-                        <a href="#register" class="bg-green-800 hover:bg-green-900 text-white font-medium py-2 px-4 rounded-lg transition-transform duration-300 ease-in-out transform hover:scale-105">
+                        <a href="#register" class="bg-forest-green hover:opacity-90 text-ivory font-medium py-2 px-4 rounded-lg transition-transform duration-300 ease-in-out transform hover:scale-105">
                             Register Now
                         </a>
                     </nav>
 
                     <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-button" class="md:hidden text-gray-600 hover:text-gray-900 focus:outline-none">
+                    <button id="mobile-menu-button" class="md:hidden text-ebony hover:text-black focus:outline-none">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
                     </button>
-                </div>
+                </nav>
             </div>
-            <!-- Mobile Menu -->
-            <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-white/90 backdrop-blur-sm border-t border-gray-200">
-                <a href="#conference" class="block py-2 text-gray-600 hover:text-green-800">Symposium</a>
-                <a href="#hackathon" class="block py-2 text-gray-600 hover:text-green-800">Hackathon</a>
-                <a href="#speakers" class="text-gray-600 hover:text-green-800 transition-colors duration-300">Speakers</a>
-                <a href="#schedule" class="block py-2 text-gray-600 hover:text-green-800">Schedule</a>
-                <a href="#register" class="block mt-2 w-full text-center bg-green-800 hover:bg-green-900 text-white font-medium py-2 px-4 rounded-lg">Register</a>
+             <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden bg-ivory/80 backdrop-blur-lg">
+                <div class="flex flex-col space-y-2 p-4">
+                    <a href="#conference" class="block py-2 text-ebony hover:text-black">Symposium</a>
+                    <a href="#hackathon" class="block py-2 text-ebony hover:text-black">Hackathon</a>
+                    <a href="#speakers" class="block py-2 text-ebony hover:text-black">Speakers</a>
+                    <a href="#schedule" class="block py-2 text-ebony hover:text-black">Schedule</a>
+                    <a href="#register" class="block mt-2 w-full text-center bg-forest-green hover:opacity-90 text-ivory font-medium py-2 px-4 rounded-lg">Register</a>
+                </div>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main>
-            <!-- Hero Section -->
-            <section class="hero-bg h-screen flex items-center justify-center">
+        <!-- Hero Section -->
+        <main class="flex items-center justify-center w-full hero-section-bg" style="min-height: calc(100vh - 73px);">
+             <section class="relative flex items-center justify-center py-16 sm:py-20">
                 <div class="container mx-auto px-6 text-center text-white">
                     <div>
-                        <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-4">
+                        <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight mb-4 text-ivory">
                             Symposium & Hackathon
                         </h1>
-                        <p class="text-lg md:text-xl text-gray-200 max-w-3xl mx-auto mb-8">
+                        <p class="text-base sm:text-lg md:text-xl text-ivory/90 max-w-3xl mx-auto mb-8">
                             Join us at the grand opening of CutMyTimber's new factory for a one-day symposium followed by an innovative weekend hackathon celebrating the future of mass timber construction.
                         </p>
-                        <a href="#register" class="bg-green-800 hover:bg-green-900 text-white font-bold py-3 px-8 rounded-full transition-transform duration-300 ease-in-out transform hover:scale-105 inline-block">
+                        <a href="#register" class="bg-forest-green/20 hover:bg-forest-green/40 border border-forest-green text-ivory font-bold py-3 px-8 rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 inline-block">
                             Secure Your Spot
                         </a>
                         <!-- Added Stats Section -->
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-gray-400/30 px-4 sm:px-0">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-ivory/30 px-4 sm:px-0">
                             <div class="animate-scale-in" style="animation-delay: 0.2s;">
                                 <div class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">60+</div>
-                                <div class="text-gray-300 text-sm sm:text-base">Global Events</div>
+                                <div class="text-ivory/90 text-sm sm:text-base">Global Events</div>
                             </div>
                             <div class="animate-scale-in" style="animation-delay: 0.4s;">
                                 <div class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">10+</div>
-                                <div class="text-gray-300 text-sm sm:text-base">Years Running</div>
+                                <div class="text-ivory/90 text-sm sm:text-base">Years Running</div>
                             </div>
                             <div class="animate-scale-in" style="animation-delay: 0.6s;">
                                 <div class="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2">1000s</div>
-                                <div class="text-gray-300 text-sm sm:text-base">Community Members</div>
+                                <div class="text-ivory/90 text-sm sm:text-base">Community Members</div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- New Symposium Section -->
-            <section id="conference" class="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
-                
-                <div class="relative z-10 container mx-auto px-4 sm:px-6">
-                    <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural">
-                            <div class="inline-flex items-center bg-white/90 border border-timber/20 rounded-full px-4 sm:px-6 py-2 mb-4 sm:mb-6">
-                                <span class="text-gray-900 font-medium text-sm sm:text-base">November 7, 2025</span>
-                            </div>
-                            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in text-foreground drop-shadow-sm">
-                                Mass Timber Symposium
-                            </h2>
-                            <div class="bg-white/90 p-4 rounded-lg">
-                                <p class="text-base sm:text-lg text-gray-800 leading-relaxed animate-slide-up font-medium">
-                                    A full-day symposium celebrating the grand opening of CutMyTimber's new factory, featuring industry leaders from across the Pacific Northwest sharing insights on the future of mass timber construction.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
-                        <!-- Highlight 1 -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.1s;">
-                            <div class="text-3xl sm:text-4xl mb-4">🎤</div>
-                            <h3 class="text-lg sm:text-xl font-semibold mb-3 text-timber">Industry-Leading Speakers</h3>
-                            <p class="text-card-foreground/85 leading-relaxed text-sm sm:text-base font-medium">Hear from the pioneers and innovators shaping the future of architecture and construction with mass timber.</p>
-                        </div>
-                        <!-- Highlight 2 -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.2s;">
-                            <div class="text-3xl sm:text-4xl mb-4">🏭</div>
-                            <h3 class="text-lg sm:text-xl font-semibold mb-3 text-timber">Exclusive Factory Tours</h3>
-                            <p class="text-card-foreground/85 leading-relaxed text-sm sm:text-base font-medium">Get a behind-the-scenes look at state-of-the-art mass timber fabrication at the new CutMyTimber facility.</p>
-                        </div>
-                         <!-- Highlight 3 -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.3s;">
-                            <div class="text-3xl sm:text-4xl mb-4">🤝</div>
-                            <h3 class="text-lg sm:text-xl font-semibold mb-3 text-timber">Networking Opportunities</h3>
-                            <p class="text-card-foreground/85 leading-relaxed text-sm sm:text-base font-medium">Connect with hundreds of professionals, including architects, engineers, developers, and policymakers.</p>
-                        </div>
-                         <!-- Highlight 4 -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.4s;">
-                            <div class="text-3xl sm:text-4xl mb-4">💡</div>
-                            <h3 class="text-lg sm:text-xl font-semibold mb-3 text-timber">Innovative Workshops</h3>
-                            <p class="text-card-foreground/85 leading-relaxed text-sm sm:text-base font-medium">Participate in hands-on sessions covering the latest in digital design tools and sustainable building practices.</p>
-                        </div>
-                    </div>
-
-                    <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg animate-fade-in">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
-                            <div>
-                                <h4 class="text-xl sm:text-2xl font-bold text-timber mb-2">8:00 AM</h4>
-                                <p class="text-card-foreground/85 text-sm sm:text-base font-medium">Registration & Breakfast</p>
-                            </div>
-                            <div>
-                                <h4 class="text-xl sm:text-2xl font-bold text-forest mb-2">9:00 AM - 5:00 PM</h4>
-                                <p class="text-card-foreground/85 text-sm sm:text-base font-medium">Sessions & Factory Tours</p>
-                            </div>
-                            <div>
-                                <h4 class="text-xl sm:text-2xl font-bold text-timber-dark mb-2">6:00 PM</h4>
-                                <p class="text-card-foreground/85 text-sm sm:text-base font-medium">Hackathon Kickoff</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6 sm:mt-8">
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-timber hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-opacity duration-300">
-                                View Full Agenda
-                            </a>
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
-                                Symposium Registration
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-
-            <!-- Updated Hackathon Section -->
-            <section id="hackathon" class="relative py-24 overflow-hidden">
-                <div class="absolute inset-0 bg-white/60 z-0"></div>
-                <div id="vanta-hackathon-bg"></div>
-                <div class="relative z-10 container mx-auto px-4">
-                    <div class="max-w-4xl mx-auto text-center content-card p-8 rounded-lg mb-12">
-                        <div class="inline-flex items-center bg-forest/10 border border-forest/20 rounded-full px-6 py-2 mb-6">
-                            <span class="text-forest font-medium">November 7-9, 2025</span>
-                        </div>
-                        <h2 class="text-4xl md:text-5xl font-bold mb-6 text-foreground drop-shadow-sm">
-                            Mass Timber Hackathon
-                        </h2>
-                        <p class="text-lg text-foreground/90 leading-relaxed font-medium">
-                            Following the symposium, dive into a weekend of intensive collaboration and innovation. Organized by the <a href="https://www.hackaec.com" target="_blank" rel="noopener noreferrer" class="text-timber hover:text-timber-dark transition-colors font-semibold">AEC Hackathon team</a>, this event focuses on advancing mass timber construction through technology and sustainable practices.
-                        </p>
-                    </div>
-                    
-                    <div class="max-w-4xl mx-auto content-card p-8 rounded-lg mb-12">
-                         <h3 class="text-2xl font-semibold mb-4 text-center text-card-foreground">What is an AEC Hackathon?</h3>
-                        <div class="video-container mb-6">
-                            <iframe src="https://www.youtube.com/embed/gUBsrkZW3IU" title="AEC Hackathon Explainer Video" class="rounded-lg" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                        </div>
-                    </div>
-
-                    <div class="max-w-4xl mx-auto content-card p-8 rounded-lg">
-                        <h3 class="text-2xl font-semibold mb-6 text-center text-card-foreground">Building on Global Timber Innovation</h3>
-                        <p class="text-card-foreground/85 mb-6 leading-relaxed font-medium">
-                            Following successful timber-focused hackathons in <a href="https://opensource.construction/events/aec-hackathon-zurich-2025/" target="_blank" rel="noopener noreferrer" class="text-timber hover:text-timber-dark transition-colors font-semibold">Zurich</a> and the <a href="https://www.digitize-wood.de/en-us/publication/default/detail?itemId=153&title=25.+%E2%80%93+27.04.2025+%E2%80%93+Hackathon+Digital+Prefabrication+Challenge" target="_blank" rel="noopener noreferrer" class="text-timber hover:text-timber-dark transition-colors font-semibold">Digital Prefabrication Challenge</a>, it's now time for Oregon and the Pacific Northwest to lead in timber technologies.
-                        </p>
-                        <p class="text-card-foreground/85 leading-relaxed font-medium">
-                            With our region's rich forestry heritage, innovative manufacturing capabilities, and thriving tech ecosystem, we're uniquely positioned to pioneer the next generation of sustainable mass timber solutions. Join us in advancing digital fabrication, AI-driven design, and sustainable construction practices that will shape the future of building with wood.
-                        </p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- New Challenge Areas Section -->
-            <section id="challenges" class="py-20">
-                 <div class="container mx-auto px-4">
-                    <div class="mb-16">
-                        <h3 class="text-3xl font-bold text-center mb-8 text-foreground drop-shadow-sm">Challenge Areas</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                           <!-- Challenge 1 -->
-                            <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.2s;">
-                                <div class="w-12 h-12 bg-gradient-timber rounded-lg mb-4"></div>
-                                <h4 class="text-xl font-semibold mb-3 text-timber">Digital Prefabrication</h4>
-                                <p class="text-card-foreground/85 font-medium">Optimize manufacturing workflows and quality control systems</p>
-                            </div>
-                            <!-- Challenge 2 -->
-                            <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.4s;">
-                                <div class="w-12 h-12 bg-gradient-forest rounded-lg mb-4"></div>
-                                <h4 class="text-xl font-semibold mb-3 text-timber">DfMA</h4>
-                                <p class="text-card-foreground/85 font-medium">Create tools for optimizing mass timber design for efficient manufacturing and assembly processes</p>
-                            </div>
-                            <!-- Challenge 3 -->
-                            <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.6s;">
-                                <div class="w-12 h-12 bg-gradient-timber-dark rounded-lg mb-4"></div>
-                                <h4 class="text-xl font-semibold mb-3 text-timber">Construction Tech</h4>
-                                <p class="text-card-foreground/85 font-medium">Develop solutions for on-site assembly and project management</p>
-                            </div>
-                            <!-- Challenge 4 -->
-                            <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-8 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.8s;">
-                                <div class="w-12 h-12 bg-gradient-timber rounded-lg mb-4"></div>
-                                <h4 class="text-xl font-semibold mb-3 text-timber">AI in Mass Timber</h4>
-                                <p class="text-card-foreground/85 font-medium">Leverage artificial intelligence for design optimization, quality control, and predictive analytics</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section> 
-
-               <!-- Speakers Section -->
-               <section id="speakers" class="relative py-16 sm:py-20 lg:py-24">
-                <div class="absolute inset-0 bg-white/70 z-0"></div>
-                <div id="vanta-bg"></div>
-                <div class="relative z-10 container mx-auto px-4 sm:px-6">
-                    <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
-                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in">
-                            Industry Leaders & Experts
-                        </h2>
-                        <p class="text-base sm:text-lg text-black leading-relaxed animate-slide-up">
-                            Learn from the pioneers and innovators shaping the future of mass timber construction across the Pacific Northwest and beyond.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-16">
-                        <!-- Speaker 1 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.1s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">FL</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Freres Lumber Co.</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Mass Timber Manufacturing</p>
-                                <p class="text-black text-center text-xs sm:text-sm">Industry Pioneer</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Leading manufacturer of cross-laminated timber and innovative wood products in the Pacific Northwest.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">CLT Manufacturing</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Sustainable Forestry</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Production Innovation</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 2 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.2s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">ZL</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Zip O Laminators</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Glulam Engineering</p>
-                                <p class="text-black text-center text-xs sm:text-sm">Structural Solutions</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Specialized in engineered lumber products and custom glulam solutions for complex architectural projects.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Glulam Engineering</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Custom Fabrication</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Structural Design</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 3 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.3s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">T</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Timberlab</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Design Innovation</p>
-                                <p class="text-black text-center text-xs sm:text-sm">Research & Development</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Research-driven company advancing mass timber construction through innovative design and technology.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Research & Development</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Design Innovation</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Technical Solutions</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 4 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.4s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">LA</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Lever Architecture</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Sustainable Design</p>
-                                <p class="text-black text-center text-xs sm:text-sm">Architectural Excellence</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Award-winning firm specializing in sustainable mass timber buildings and innovative construction methods.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Sustainable Design</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Mass Timber Architecture</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Green Building</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 5 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.5s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">ZA</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">ZGF Architects</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Large-Scale Projects</p>
-                                <p class="text-black text-center text-xs sm:text-sm">International Practice</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Leading architectural firm with extensive experience in large-scale mass timber construction projects.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Large-Scale Design</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Project Management</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Technical Innovation</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 6 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.6s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">OE</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Oregon Engineers</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Structural Engineering</p>
-                                <p class="text-black text-center text-xs sm:text-sm">Regional Expertise</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Leading structural engineers from Oregon and Washington specializing in mass timber systems.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Structural Engineering</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Seismic Design</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Building Codes</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 7 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.7s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">IM</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Iain MacDonald</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">Director</p>
-                                <p class="text-black text-center text-xs sm:text-sm">Tallwood Design Center & Oregon's Mass Timber Coalition</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Leading advocate for mass timber development in Oregon, advancing sustainable building practices and industry collaboration.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Mass Timber Policy</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Sustainable Construction</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Industry Coordination</span>
-                            </div>
-                        </div>
-                        <!-- Speaker 8 -->
-                        <div class="bg-white/90 backdrop-blur-sm border border-border/50 rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.8s;">
-                            <div class="mb-4">
-                                <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-timber rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
-                                    <span class="text-timber-foreground font-bold text-sm sm:text-lg">SS</span>
-                                </div>
-                                <h3 class="text-base sm:text-xl font-semibold text-center mb-1">Stefan Schneider</h3>
-                                <p class="text-timber text-center text-xs sm:text-sm font-medium mb-1">CEO & Founder</p>
-                                <p class="text-black text-center text-xs sm:text-sm">CutMyTimber</p>
-                            </div>
-                            <p class="text-black text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
-                                Pioneering digital fabrication in mass timber construction, revolutionizing manufacturing processes through advanced technology.
-                            </p>
-                            <div class="flex flex-wrap gap-1 sm:gap-2">
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Digital Fabrication</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Manufacturing Innovation</span>
-                                <span class="bg-timber/10 text-timber text-xs px-2 py-1 rounded-full border border-timber/20">Industry Leadership</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="text-center animate-fade-in">
-                        <div class="bg-card border border-border/50 rounded-xl p-6 sm:p-8 shadow-lg">
-                            <h3 class="text-xl sm:text-2xl font-semibold mb-4">More Speakers to be Announced</h3>
-                            <p class="text-black mb-4 sm:mb-6 max-w-2xl mx-auto text-sm sm:text-base">
-                                We're continuing to add industry leaders, technical experts, and innovation pioneers to our speaker lineup. Stay tuned for more announcements!
-                            </p>
-                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                                <a href="#" class="w-full sm:w-auto inline-block text-center bg-timber hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-opacity duration-300">
-                                    View Full Speaker List
-                                </a>
-                                <a href="#" class="w-full sm:w-auto inline-block text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
-                                    Nominate a Speaker
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-
-            <!-- Schedule Section -->
-            <section id="schedule" class="py-20 fade-in-section">
-                <div class="container mx-auto px-6 bg-white/80 content-card p-8 rounded-lg">
-                    <h2 class="text-3xl font-bold text-center text-gray-900 mb-4">Event Schedule</h2>
-                    <p class="text-center text-gray-600 max-w-2xl mx-auto mb-10 text-lg">
-                        Three days of learning, innovation, and community—explore the detailed schedule for the Mass Timber Symposium & Hackathon.
-                    </p>
-
-                    <!-- Conference Day Schedule -->
-                    <div class="mb-14">
-                        <h3 class="text-2xl font-semibold text-timber mb-6 text-center">Symposium: Friday, Nov 7, 2025</h3>
-                        <ul class="space-y-4 max-w-2xl mx-auto">
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-timber-dark font-bold">8:00 AM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Registration & Breakfast</span>
-                                        <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Check-in</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Coffee & pastries, networking</div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-forest font-bold">9:00 AM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Opening Remarks</span>
-                                        <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Welcome</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Event overview & introduction</div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-timber font-bold">9:30 AM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Keynote: The Future is Timber</span>
-                                        <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Keynote</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Dr. Elena Vasquez</div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-timber-dark font-bold">10:30 AM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Panel: Digital Fabrication</span>
-                                        <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Panel</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Moderated by Ben Carter</div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-gray-700 font-bold">12:00 PM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Lunch Break</span>
-                                        <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Break</span>
-                                    </div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-timber font-bold">1:00 PM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Workshops & Factory Tours</span>
-                                        <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Workshop</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Hands-on sessions & guided tours</div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-timber-dark font-bold">4:30 PM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Networking Reception</span>
-                                        <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Social</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Drinks & conversations</div>
-                                </div>
-                            </li>
-                            <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
-                                <div class="w-24 text-right mr-4 flex-shrink-0 text-forest font-bold">6:00 PM</div>
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <span class="font-semibold text-gray-900">Hackathon Kickoff</span>
-                                        <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Hackathon</span>
-                                    </div>
-                                    <div class="text-sm text-muted-foreground">Team formation & challenge reveal</div>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Hackathon Weekend Grid -->
-                    <div class="mb-14">
-                        <h3 class="text-2xl font-semibold text-forest mb-6 text-center">Hackathon: Nov 7–9, 2025</h3>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <!-- Friday -->
-                            <div class="bg-forest/10 border border-forest/20 rounded-xl p-5 shadow-natural">
-                                <h4 class="text-lg font-bold text-forest mb-3 flex items-center gap-2">
-                                    <span>Friday</span>
-                                    <span class="text-sm font-semibold text-gray-600">Nov 7</span>
-                                </h4>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-timber-dark w-16">6:00 PM</span>
-                                        <span class="flex-1">Kickoff & Team Formation</span>
-                                        <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Kickoff</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-gray-700 w-16">7:00 PM</span>
-                                        <span class="flex-1">Dinner & Social</span>
-                                        <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Social</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <!-- Saturday -->
-                            <div class="bg-timber/10 border border-timber/20 rounded-xl p-5 shadow-natural">
-                                <h4 class="text-lg font-bold text-timber mb-3 flex items-center gap-2">
-                                    <span>Saturday</span>
-                                    <span class="text-sm font-semibold text-gray-600">Nov 8</span>
-                                </h4>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-timber-dark w-16">All Day</span>
-                                        <span class="flex-1">Hacking & Mentoring</span>
-                                        <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Hacking</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-forest w-16">12:00 PM</span>
-                                        <span class="flex-1">Lunch</span>
-                                        <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Meal</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-gray-700 w-16">6:00 PM</span>
-                                        <span class="flex-1">Mentor Check-ins</span>
-                                        <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Mentors</span>
-                                    </li>
-                                </ul>
-                            </div>
-                            <!-- Sunday -->
-                            <div class="bg-timber-dark/10 border border-timber-dark rounded-xl p-5 shadow-natural">
-                                <h4 class="text-lg font-bold text-timber-dark mb-3 flex items-center gap-2">
-                                    <span>Sunday</span>
-                                    <span class="text-sm font-semibold text-gray-600">Nov 9</span>
-                                </h4>
-                                <ul class="space-y-3">
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-timber-dark w-16">9:00 AM</span>
-                                        <span class="flex-1">Breakfast & Hacking</span>
-                                        <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Hacking</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-forest w-16">2:00 PM</span>
-                                        <span class="flex-1">Final Presentations</span>
-                                        <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Demos</span>
-                                    </li>
-                                    <li class="flex items-start gap-2">
-                                        <span class="font-mono text-xs text-gray-700 w-16">4:00 PM</span>
-                                        <span class="flex-1">Awards & Closing</span>
-                                        <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Awards</span>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- CTA Card -->
-                    <div class="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-8 mt-10 max-w-2xl mx-auto text-center">
-                        <h3 class="text-xl font-semibold mb-4 text-timber">Ready to join us?</h3>
-                        <p class="text-gray-700 mb-6">Register for the symposium, join the hackathon, or download the full event schedule.</p>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-timber hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-opacity duration-300">
-                                Register for Conference
-                            </a>
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-forest hover:bg-green-900 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
-                                Join the Hackathon
-                            </a>
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
-                                Download Full Schedule
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Venue Section -->
-            <section id="venue" class="relative py-20 fade-in-section">
-                <div class="container mx-auto px-4 sm:px-6">
-                    <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
-                        <div class="bg-white/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural">
-                            <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in text-foreground drop-shadow-sm">
-                                The Venue: CutMyTimber Factory
-                            </h2>
-                            <p class="text-base sm:text-lg text-muted-foreground leading-relaxed animate-slide-up font-medium">
-                                Discover Oregon’s newest mass timber innovation hub. Our event takes place at the state-of-the-art CutMyTimber facility, designed for learning, collaboration, and hands-on exploration.
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Venue Features Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-                        <!-- Factory -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.1s;">
-                            <div class="text-4xl mb-4">🏭</div>
-                            <h3 class="text-lg font-semibold mb-2 text-timber">Factory</h3>
-                            <p class="text-card-foreground/85 text-sm font-medium">Tour a world-class mass timber fabrication facility and see advanced automation in action.</p>
-                        </div>
-                        <!-- Innovation Labs -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.2s;">
-                            <div class="text-4xl mb-4">🧪</div>
-                            <h3 class="text-lg font-semibold mb-2 text-timber">Innovation Labs</h3>
-                            <p class="text-card-foreground/85 text-sm font-medium">Hands-on workshops and digital fabrication demos in dedicated learning spaces.</p>
-                        </div>
-                        <!-- Conference Center -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.3s;">
-                            <div class="text-4xl mb-4">🏛️</div>
-                            <h3 class="text-lg font-semibold mb-2 text-timber">Conference Center</h3>
-                            <p class="text-card-foreground/85 text-sm font-medium">Modern auditorium and breakout rooms for talks, panels, and networking.</p>
-                        </div>
-                        <!-- Networking Areas -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural hover:shadow-timber transition-all duration-300 animate-scale-in" style="animation-delay: 0.4s;">
-                            <div class="text-4xl mb-4">🤝</div>
-                            <h3 class="text-lg font-semibold mb-2 text-timber">Networking Areas</h3>
-                            <p class="text-card-foreground/85 text-sm font-medium">Relax and connect in open lounges, outdoor patios, and collaborative spaces.</p>
-                        </div>
-                    </div>
-
-                    <!-- Factory Showcase Two-Column Layout -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20 items-center">
-                        <!-- Left: Description and List -->
-                        <div>
-                            <div class="bg-white/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural">
-                                <h3 class="text-2xl font-bold mb-4 text-timber">Inside the Factory</h3>
-                                <p class="text-base text-muted-foreground mb-5 font-medium">
-                                    Experience the future of timber construction up close. Our guided tours and workshops will showcase:
-                                </p>
-                                <ul class="list-disc ml-6 text-card-foreground/85 text-base space-y-2 font-medium">
-                                    <li>Automated CNC timber processing</li>
-                                    <li>Robotic joinery and digital fabrication</li>
-                                    <li>Material testing and prototyping labs</li>
-                                    <li>Collaborative design and innovation spaces</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <!-- Right: Gradient Timber Box -->
-                        <div class="flex justify-center">
-                            <div class="bg-gradient-timber rounded-2xl shadow-lg p-8 flex flex-col items-center w-full max-w-md text-center">
-                                <h4 class="text-2xl font-bold text-timber-foreground mb-4">Factory Tours</h4>
-                                <p class="text-timber-foreground/90 mb-6 font-medium">
-                                    Guided tours run throughout the symposium. Reserve your spot for an exclusive look at the latest in timber manufacturing.
-                                </p>
-                                <a href="#" class="inline-block bg-white text-timber font-semibold py-3 px-6 rounded-lg shadow hover:bg-gray-100 transition-colors duration-200">
-                                    Reserve a Tour
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Logistics Information Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-                        <!-- Location -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in" style="animation-delay: 0.1s;">
-                            <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2"><span>📍</span>Location</h4>
-                            <ul class="text-card-foreground/85 text-sm font-medium space-y-1">
-                                <li>CutMyTimber Factory</li>
-                                <li>1234 Timber Way</li>
-                                <li>Portland, OR 97210</li>
-                            </ul>
-                        </div>
-                        <!-- Parking -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in" style="animation-delay: 0.2s;">
-                            <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2"><span>🚗</span>Parking</h4>
-                            <ul class="text-card-foreground/85 text-sm font-medium space-y-1">
-                                <li>On-site parking available</li>
-                                <li>Overflow lot nearby</li>
-                                <li>EV charging stations</li>
-                            </ul>
-                        </div>
-                        <!-- Accommodations -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in" style="animation-delay: 0.3s;">
-                            <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2"><span>🏨</span>Accommodations</h4>
-                            <ul class="text-card-foreground/85 text-sm font-medium space-y-1">
-                                <li>Discounted hotel blocks</li>
-                                <li>Shuttle service to venue</li>
-                                <li>See area hotels below</li>
-                            </ul>
-                        </div>
-                        <!-- Meals -->
-                        <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in" style="animation-delay: 0.4s;">
-                            <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2"><span>🥗</span>Meals</h4>
-                            <ul class="text-card-foreground/85 text-sm font-medium space-y-1">
-                                <li>Breakfast & lunch included</li>
-                                <li>Dietary options available</li>
-                                <li>Evening receptions</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Getting There CTA Card -->
-                    <div class="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-8 max-w-2xl mx-auto text-center animate-fade-in">
-                        <h3 class="text-xl font-semibold mb-4 text-timber">Getting There</h3>
-                        <p class="text-gray-700 mb-6">
-                            Plan your visit: get directions, explore local hotels, and review transportation options to make your experience seamless.
-                        </p>
-                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-timber hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-opacity duration-300">
-                                Get Directions
-                            </a>
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
-                                View Area Hotels
-                            </a>
-                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-forest hover:bg-green-900 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
-                                Transportation Info
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-         
-            <!-- Registration Section -->
-            <section id="register" class="py-20 fade-in-section">
-                <div class="container mx-auto px-6 text-center">
-                    <div class="content-card p-8 rounded-lg max-w-3xl mx-auto">
-                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Join the Movement</h2>
-                        <p class="text-gray-600 max-w-2xl mx-auto mb-8">
-                            Whether you're looking to learn, network, or build, MassTimberNexus is the place to be. Register now to be part of the change.
-                        </p>
-                        <a href="#" class="bg-green-800 hover:bg-green-900 text-white font-bold py-4 px-10 rounded-full transition-transform duration-300 ease-in-out transform hover:scale-105 inline-block text-lg">
-                            Register for the Event
-                        </a>
                     </div>
                 </div>
             </section>
         </main>
 
-        <!-- Footer -->
-        <footer class="bg-black border-t border-gray-800 text-white/70">
-          <div class="container mx-auto px-6 py-14 md:py-20">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
-              <!-- Event Info -->
-              <div class="md:col-span-2 space-y-5">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-lg bg-timber flex items-center justify-center font-extrabold text-xl text-timber-foreground select-none">
-                    MTN
-                  </div>
-                  <div>
-                    <div class="font-bold text-white text-lg leading-tight">MassTimberNexus</div>
-                    <div class="text-xs text-white/60">Nov 7-9, 2025<br>Portland, OR</div>
-                  </div>
+        <!-- New Symposium Section -->
+        <section id="conference" class="relative py-16 sm:py-20 lg:py-24 overflow-hidden">
+            
+            <div class="relative z-10 container mx-auto px-4 sm:px-6">
+                <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
+                    <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-natural">
+                        <div class="inline-flex items-center bg-ivory/10 border border-ivory/20 rounded-full px-4 sm:px-6 py-2 mb-4 sm:mb-6">
+                            <span class="text-ivory font-medium text-sm sm:text-base">November 7, 2025</span>
+                        </div>
+                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in text-ivory drop-shadow-sm">
+                            Mass Timber Symposium
+                        </h2>
+                        <div class="bg-ebony/20 p-4 rounded-lg">
+                            <p class="text-base sm:text-lg text-ivory/90 leading-relaxed animate-slide-up font-medium">
+                                A full-day symposium celebrating the grand opening of CutMyTimber's new factory, featuring industry leaders from across the Pacific Northwest sharing insights on the future of mass timber construction.
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-sm text-white/70">
-                  Symposium & Hackathon celebrating mass timber innovation, digital fabrication, and sustainable construction in the Pacific Northwest.
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12 sm:mb-16">
+                    <!-- Highlight 1 -->
+                    <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in text-center" style="animation-delay: 0.1s;">
+                        <div class="text-3xl sm:text-4xl mb-4">🎤</div>
+                        <h3 class="text-lg sm:text-xl font-semibold mb-3 text-forest-green">Industry-Leading Speakers</h3>
+                        <p class="text-ivory/90 leading-relaxed text-sm sm:text-base font-medium">Hear from the pioneers and innovators shaping the future of architecture and construction with mass timber.</p>
+                    </div>
+                    <!-- Highlight 2 -->
+                    <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in text-center" style="animation-delay: 0.2s;">
+                        <div class="text-3xl sm:text-4xl mb-4">🏭</div>
+                        <h3 class="text-lg sm:text-xl font-semibold mb-3 text-forest-green">Exclusive Factory Tours</h3>
+                        <p class="text-ivory/90 leading-relaxed text-sm sm:text-base font-medium">Get a behind-the-scenes look at state-of-the-art mass timber fabrication at the new CutMyTimber facility.</p>
+                    </div>
+                     <!-- Highlight 3 -->
+                    <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in text-center" style="animation-delay: 0.3s;">
+                        <div class="text-3xl sm:text-4xl mb-4">🤝</div>
+                        <h3 class="text-lg sm:text-xl font-semibold mb-3 text-forest-green">Networking Opportunities</h3>
+                        <p class="text-ivory/90 leading-relaxed text-sm sm:text-base font-medium">Connect with hundreds of professionals, including architects, engineers, developers, and policymakers.</p>
+                    </div>
+                     <!-- Highlight 4 -->
+                    <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in text-center" style="animation-delay: 0.4s;">
+                        <div class="text-3xl sm:text-4xl mb-4">💡</div>
+                        <h3 class="text-lg sm:text-xl font-semibold mb-3 text-forest-green">Innovative Workshops</h3>
+                        <p class="text-ivory/90 leading-relaxed text-sm sm:text-base font-medium">Participate in hands-on sessions covering the latest in digital design tools and sustainable building practices.</p>
+                    </div>
+                </div>
+
+                <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-lg animate-fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 text-center">
+                        <div>
+                            <h4 class="text-xl sm:text-2xl font-bold text-forest-green mb-2">8:00 AM</h4>
+                            <p class="text-ivory/90 text-sm sm:text-base font-medium">Registration & Breakfast</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xl sm:text-2xl font-bold text-forest-green mb-2">9:00 AM - 5:00 PM</h4>
+                            <p class="text-ivory/90 text-sm sm:text-base font-medium">Sessions & Factory Tours</p>
+                        </div>
+                        <div>
+                            <h4 class="text-xl sm:text-2xl font-bold text-forest-green mb-2">6:00 PM</h4>
+                            <p class="text-ivory/90 text-sm sm:text-base font-medium">Hackathon Kickoff</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6 sm:mt-8">
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-forest-green/20 hover:bg-forest-green/40 border border-forest-green text-ivory font-semibold py-3 px-6 rounded-lg transition-all duration-300">
+                            View Full Agenda
+                        </a>
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-ivory/20 hover:bg-ivory/40 border border-ivory text-ivory font-semibold py-3 px-6 rounded-lg transition-all duration-300">
+                            Symposium Registration
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hackathon Section -->
+        <section id="hackathon" class="relative py-24 overflow-hidden">
+            <div id="vanta-hackathon-bg"></div>
+            <div class="absolute inset-0 bg-ebony/80 z-0"></div>
+            <div class="relative z-10 container mx-auto px-4">
+                <div class="max-w-4xl mx-auto text-center bg-card-dark content-card p-8 rounded-lg mb-12">
+                    <div class="inline-flex items-center bg-forest-green/10 border border-forest-green/20 rounded-full px-6 py-2 mb-6">
+                        <span class="text-forest-green font-medium">November 7-9, 2025</span>
+                    </div>
+                    <h2 class="text-4xl md:text-5xl font-bold mb-6 text-ivory drop-shadow-sm">
+                        Mass Timber Hackathon
+                    </h2>
+                    <p class="text-lg text-ivory/90 leading-relaxed font-medium">
+                        Following the symposium, dive into a weekend of intensive collaboration and innovation. Organized by the <a href="https://www.hackaec.com" target="_blank" rel="noopener noreferrer" class="text-forest-green hover:opacity-80 transition-colors font-semibold">AEC Hackathon team</a>, this event focuses on advancing mass timber construction through technology and sustainable practices.
+                    </p>
+                </div>
+                
+                <div class="max-w-4xl mx-auto bg-card-dark content-card p-8 rounded-lg mb-12">
+                     <h3 class="text-2xl font-semibold mb-4 text-center text-ivory">What is an AEC Hackathon?</h3>
+                    <div class="video-container mb-6">
+                      <div class="yt-lite" data-videoid="gUBsrkZW3IU" aria-label="Play video">
+                        <button class="yt-play-button" aria-label="Play"></button>
+                      </div>
+                    </div>
+                </div>
+
+                <div class="max-w-4xl mx-auto bg-card-dark content-card p-8 rounded-lg">
+                    <h3 class="text-2xl font-semibold mb-6 text-center text-ivory">Building on Global Timber Innovation</h3>
+                    <p class="text-ivory/80 mb-6 leading-relaxed font-medium">
+                        Following successful timber-focused hackathons in <a href="https://opensource.construction/events/aec-hackathon-zurich-2025/" target="_blank" rel="noopener noreferrer" class="text-forest-green hover:opacity-80 transition-colors font-semibold">Zurich</a> and the <a href="https://www.digitize-wood.de/en-us/publication/default/detail?itemId=153&title=25.+%E2%80%93+27.04.2025+%E2%80%93+Hackathon+Digital+Prefabrication+Challenge" target="_blank" rel="noopener noreferrer" class="text-forest-green hover:opacity-80 transition-colors font-semibold">Digital Prefabrication Challenge</a>, it's now time for Oregon and the Pacific Northwest to lead in timber technologies.
+                    </p>
+                    <p class="text-ivory/80 leading-relaxed font-medium">
+                        With our region's rich forestry heritage, innovative manufacturing capabilities, and thriving tech ecosystem, we're uniquely positioned to pioneer the next generation of sustainable mass timber solutions. Join us in advancing digital fabrication, AI-driven design, and sustainable construction practices that will shape the future of building with wood.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- New Challenge Areas Section -->
+        <section id="challenges" class="py-20 bg-ebony">
+             <div class="container mx-auto px-4">
+                 <div class="mb-16">
+                     <h3 class="text-3xl font-bold text-center mb-8 text-ivory drop-shadow-sm">Challenge Areas</h3>
+                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                         <!-- Challenge 1 -->
+                         <div class="bg-card-dark content-card text-center rounded-xl p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.2s;">
+                             <div class="w-12 h-12 bg-gradient-forest rounded-lg mb-4 mx-auto"></div>
+                             <h4 class="text-xl font-semibold mb-3 text-forest-green">Digital Prefabrication</h4>
+                             <p class="text-ivory/80 font-medium">Optimize manufacturing workflows and quality control systems</p>
+                         </div>
+                         <!-- Challenge 2 -->
+                         <div class="bg-card-dark content-card text-center rounded-xl p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.4s;">
+                             <div class="w-12 h-12 bg-gradient-forest rounded-lg mb-4 mx-auto"></div>
+                             <h4 class="text-xl font-semibold mb-3 text-forest-green">DfMA</h4>
+                             <p class="text-ivory/80 font-medium">Create tools for optimizing mass timber design for efficient manufacturing and assembly processes</p>
+                         </div>
+                         <!-- Challenge 3 -->
+                         <div class="bg-card-dark content-card text-center rounded-xl p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.6s;">
+                             <div class="w-12 h-12 bg-gradient-forest rounded-lg mb-4 mx-auto"></div>
+                             <h4 class="text-xl font-semibold mb-3 text-forest-green">Construction Tech</h4>
+                             <p class="text-ivory/80 font-medium">Develop solutions for on-site assembly and project management</p>
+                         </div>
+                         <!-- Challenge 4 -->
+                         <div class="bg-card-dark content-card text-center rounded-xl p-8 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in hover:scale-105" style="animation-delay: 0.8s;">
+                             <div class="w-12 h-12 bg-gradient-forest rounded-lg mb-4 mx-auto"></div>
+                             <h4 class="text-xl font-semibold mb-3 text-forest-green">AI in Mass Timber</h4>
+                             <p class="text-ivory/80 font-medium">Leverage artificial intelligence for design optimization, quality control, and predictive analytics</p>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+         </section>
+         
+        <!-- Speakers Section -->
+        <section id="speakers" class="relative py-16 sm:py-20 lg:py-24 bg-ebony">
+            <div id="speakers-bg"></div>
+            <div class="absolute inset-0 bg-ebony/60 z-0"></div>
+            <div class="relative z-10 container mx-auto px-4 sm:px-6">
+                <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in text-ivory">
+                        Industry Leaders & Experts
+                    </h2>
+                    <p class="text-base sm:text-lg text-ivory/90 leading-relaxed animate-slide-up">
+                        Learn from the pioneers and innovators shaping the future of mass timber construction across the Pacific Northwest and beyond.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 mb-12 sm:mb-16">
+                    <!-- Speaker 1 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.1s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">FL</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Freres Lumber Co.</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Mass Timber Manufacturing</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">Industry Pioneer</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Leading manufacturer of cross-laminated timber and innovative wood products in the Pacific Northwest.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">CLT Manufacturing</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Sustainable Forestry</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Production Innovation</span>
+                        </div>
+                    </div>
+                    <!-- Speaker 2 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.2s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">ZL</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Zip O Laminators</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Glulam Engineering</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">Structural Solutions</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Specialized in engineered lumber products and custom glulam solutions for complex architectural projects.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Glulam Engineering</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Custom Fabrication</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Structural Design</span>
+                        </div>
+                    </div>
+                    <!-- Speaker 3 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.3s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">T</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Timberlab</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Design Innovation</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">Research & Development</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Research-driven company advancing mass timber construction through innovative design and technology.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Research & Development</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Design Innovation</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Technical Solutions</span>
+                        </div>
+                    </div>
+                    <!-- Speaker 4 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.4s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">LA</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Lever Architecture</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Sustainable Design</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">Architectural Excellence</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Award-winning firm specializing in sustainable mass timber buildings and innovative construction methods.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Sustainable Design</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Mass Timber Architecture</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Green Building</span>
+                        </div>
+                    </div>
+                     <!-- Speaker 5 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.5s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">ZA</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">ZGF Architects</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Large-Scale Projects</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">International Practice</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Leading architectural firm with extensive experience in large-scale mass timber construction projects.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Large-Scale Design</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Project Management</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Technical Innovation</span>
+                        </div>
+                    </div>
+                    <!-- Speaker 6 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.6s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">OE</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Oregon Engineers</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Structural Engineering</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">Regional Expertise</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Leading structural engineers from Oregon and Washington specializing in mass timber systems.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Structural Engineering</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Seismic Design</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Building Codes</span>
+                        </div>
+                    </div>
+                    <!-- Speaker 7 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.7s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">IM</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Iain MacDonald</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">Director</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">Tallwood Design Center & Oregon's Mass Timber Coalition</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Leading advocate for mass timber development in Oregon, advancing sustainable building practices and industry collaboration.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Mass Timber Policy</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Sustainable Construction</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Industry Coordination</span>
+                        </div>
+                    </div>
+                    <!-- Speaker 8 -->
+                    <div class="bg-card-dark content-card rounded-xl p-4 sm:p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.8s;">
+                        <div class="mb-4 text-center">
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-forest rounded-full flex items-center justify-center mb-3 sm:mb-4 mx-auto">
+                                <span class="text-ivory font-bold text-sm sm:text-lg">SS</span>
+                            </div>
+                            <h3 class="text-base sm:text-xl font-semibold mb-1 text-ivory">Stefan Schneider</h3>
+                            <p class="text-forest-green text-xs sm:text-sm font-medium mb-1">CEO & Founder</p>
+                            <p class="text-ivory/80 text-xs sm:text-sm">CutMyTimber</p>
+                        </div>
+                        <p class="text-ivory/80 text-xs sm:text-sm mb-3 sm:mb-4 leading-relaxed">
+                            Pioneering digital fabrication in mass timber construction, revolutionizing manufacturing processes through advanced technology.
+                        </p>
+                        <div class="flex flex-wrap gap-1 sm:gap-2">
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Digital Fabrication</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Manufacturing Innovation</span>
+                            <span class="bg-forest-green/10 text-forest-green text-xs px-2 py-1 rounded-full border border-forest-green/20">Industry Leadership</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center animate-fade-in">
+                    <div class="bg-card-dark content-card rounded-xl p-6 sm:p-8 shadow-lg">
+                        <h3 class="text-xl sm:text-2xl font-semibold mb-4 text-ivory">More Speakers to be Announced</h3>
+                        <p class="text-ivory/90 mb-4 sm:mb-6 max-w-2xl mx-auto text-sm sm:text-base">
+                            We're continuing to add industry leaders, technical experts, and innovation pioneers to our speaker lineup. Stay tuned for more announcements!
+                        </p>
+                        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-forest-green/20 hover:bg-forest-green/40 border border-forest-green text-ivory font-semibold py-3 px-6 rounded-lg transition-all duration-300">
+                                View Full Speaker List
+                            </a>
+                            <a href="#" class="w-full sm:w-auto inline-block text-center bg-ivory/20 hover:bg-ivory/40 border border-ivory text-ivory font-semibold py-3 px-6 rounded-lg transition-all duration-300">
+                                Nominate a Speaker
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Schedule Section -->
+        <section id="schedule" class="py-20 fade-in-section">
+            <div class="container mx-auto px-6 bg-white/80 content-card p-8 rounded-lg">
+                <h2 class="text-3xl font-bold text-center text-gray-900 mb-4">Event Schedule</h2>
+                <p class="text-center text-gray-600 max-w-2xl mx-auto mb-10 text-lg">
+                    Three days of learning, innovation, and community—explore the detailed schedule for the Mass Timber Symposium & Hackathon.
                 </p>
-              </div>
-              <!-- Quick Links -->
-              <div>
-                <h4 class="font-semibold text-white mb-3">Quick Links</h4>
-                <ul class="space-y-2">
-                  <li><a href="#conference" class="hover:text-timber transition-colors">Symposium</a></li>
-                  <li><a href="#hackathon" class="hover:text-timber transition-colors">Hackathon</a></li>
-                  <li><a href="#speakers" class="hover:text-timber transition-colors">Speakers</a></li>
-                  <li><a href="#schedule" class="hover:text-timber transition-colors">Schedule</a></li>
-                  <li><a href="#venue" class="hover:text-timber transition-colors">Venue</a></li>
-                </ul>
-              </div>
-              <!-- Partners -->
-              <div>
-                <h4 class="font-semibold text-white mb-3">Partners</h4>
-                <ul class="space-y-2 text-sm">
-                  <li>
-                    <span class="font-semibold text-white">CutMyTimber</span>
-                    <span class="ml-2 text-white/50">(Host & Factory Sponsor)</span>
-                  </li>
-                  <li>
-                    <span class="font-semibold text-white">AEC Hackathon</span>
-                    <span class="ml-2 text-white/50">(Hackathon Organizer)</span>
-                  </li>
-                  <li>
-                    <span class="font-semibold text-white">Freres Lumber</span>
-                    <span class="ml-2 text-white/50">(CLT Partner)</span>
-                  </li>
-                  <li>
-                    <span class="font-semibold text-white">Zip O Laminators</span>
-                    <span class="ml-2 text-white/50">(Glulam Partner)</span>
-                  </li>
-                </ul>
-              </div>
-              <!-- Contact -->
-              <div>
-                <h4 class="font-semibold text-white mb-3">Contact</h4>
-                <ul class="space-y-2 text-sm">
-                  <li>
-                    <a href="mailto:info@masstimbernexus.com" class="hover:text-timber transition-colors">info@masstimbernexus.com</a>
-                  </li>
-                  <li>
-                    <a href="tel:+15035551234" class="hover:text-timber transition-colors">+1 (503) 555-1234</a>
-                  </li>
-                  <li>
-                    <span class="text-white/60">#MassTimberNexus</span>
-                  </li>
-                </ul>
-              </div>
+
+                <!-- Conference Day Schedule -->
+                <div class="mb-14">
+                    <h3 class="text-2xl font-semibold text-timber mb-6 text-center">Symposium: Friday, Nov 7, 2025</h3>
+                    <ul class="space-y-4 max-w-2xl mx-auto">
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-timber-dark font-bold">8:00 AM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Registration & Breakfast</span>
+                                    <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Check-in</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Coffee & pastries, networking</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-forest font-bold">9:00 AM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Opening Remarks</span>
+                                    <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Welcome</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Event overview & introduction</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-timber font-bold">9:30 AM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Keynote: The Future is Timber</span>
+                                    <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Keynote</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Dr. Elena Vasquez</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-timber-dark font-bold">10:30 AM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Panel: Digital Fabrication</span>
+                                    <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Panel</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Moderated by Ben Carter</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-gray-700 font-bold">12:00 PM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Lunch Break</span>
+                                    <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Break</span>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-timber font-bold">1:00 PM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Workshops & Factory Tours</span>
+                                    <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Workshop</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Hands-on sessions & guided tours</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-timber-dark font-bold">4:30 PM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Networking Reception</span>
+                                    <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Social</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Drinks & conversations</div>
+                            </div>
+                        </li>
+                        <li class="flex items-start bg-gray-50 border border-gray-200 rounded-lg p-4 shadow-natural">
+                            <div class="w-24 text-right mr-4 flex-shrink-0 text-forest font-bold">6:00 PM</div>
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="font-semibold text-gray-900">Hackathon Kickoff</span>
+                                    <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Hackathon</span>
+                                </div>
+                                <div class="text-sm text-muted-foreground">Team formation & challenge reveal</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Hackathon Weekend Grid -->
+                <div class="mb-14">
+                    <h3 class="text-2xl font-semibold text-forest mb-6 text-center">Hackathon: Nov 7–9, 2025</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Friday -->
+                        <div class="bg-forest/10 border border-forest/20 rounded-xl p-5 shadow-natural">
+                            <h4 class="text-lg font-bold text-forest mb-3 flex items-center gap-2">
+                                <span>Friday</span>
+                                <span class="text-sm font-semibold text-gray-600">Nov 7</span>
+                            </h4>
+                            <ul class="space-y-3">
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-timber-dark w-16">6:00 PM</span>
+                                    <span class="flex-1 text-gray-800">Kickoff & Team Formation</span>
+                                    <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Kickoff</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-gray-700 w-16">7:00 PM</span>
+                                    <span class="flex-1 text-gray-800">Dinner & Social</span>
+                                    <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Social</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- Saturday -->
+                        <div class="bg-timber/10 border border-timber/20 rounded-xl p-5 shadow-natural">
+                            <h4 class="text-lg font-bold text-timber mb-3 flex items-center gap-2">
+                                <span>Saturday</span>
+                                <span class="text-sm font-semibold text-gray-600">Nov 8</span>
+                            </h4>
+                            <ul class="space-y-3">
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-timber-dark w-16">All Day</span>
+                                    <span class="flex-1 text-gray-800">Hacking & Mentoring</span>
+                                    <span class="inline-block bg-timber/10 text-timber border border-timber/20 px-2 py-0.5 rounded-full text-xs font-medium">Hacking</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-forest w-16">12:00 PM</span>
+                                    <span class="flex-1 text-gray-800">Lunch</span>
+                                    <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Meal</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-gray-700 w-16">6:00 PM</span>
+                                    <span class="flex-1 text-gray-800">Mentor Check-ins</span>
+                                    <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Mentors</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- Sunday -->
+                        <div class="bg-timber-dark/10 border border-timber-dark rounded-xl p-5 shadow-natural">
+                            <h4 class="text-lg font-bold text-timber-dark mb-3 flex items-center gap-2">
+                                <span>Sunday</span>
+                                <span class="text-sm font-semibold text-gray-600">Nov 9</span>
+                            </h4>
+                            <ul class="space-y-3">
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-timber-dark w-16">9:00 AM</span>
+                                    <span class="flex-1 text-gray-800">Breakfast & Hacking</span>
+                                    <span class="inline-block bg-timber-dark text-white px-2 py-0.5 rounded-full text-xs font-medium">Hacking</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-forest w-16">2:00 PM</span>
+                                    <span class="flex-1 text-gray-800">Final Presentations</span>
+                                    <span class="inline-block bg-forest/10 text-forest border border-forest/20 px-2 py-0.5 rounded-full text-xs font-medium">Demos</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="font-mono text-xs text-gray-700 w-16">4:00 PM</span>
+                                    <span class="flex-1 text-gray-800">Awards & Closing</span>
+                                    <span class="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 rounded-full text-xs font-medium">Awards</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CTA Card -->
+                <div class="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-8 mt-10 max-w-2xl mx-auto text-center">
+                    <h3 class="text-xl font-semibold mb-4 text-timber">Ready to join us?</h3>
+                    <p class="text-gray-700 mb-6">Register for the symposium, join the hackathon, or download the full event schedule.</p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-timber hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-opacity duration-300">
+                            Register for Conference
+                        </a>
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-black hover:bg-gray-800 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
+                            Join the Hackathon
+                        </a>
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
+                            Download Full Schedule
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
-          <div class="border-t border-gray-800/70 py-6 px-6">
-            <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
-              <div>
-                &copy; <span id="footer-year"></span> MassTimberNexus. All rights reserved.
-              </div>
-              <div class="flex flex-wrap gap-4">
-                <a href="#" class="hover:text-timber transition-colors">Privacy Policy</a>
-                <span class="hidden md:inline">&middot;</span>
-                <a href="#" class="hover:text-timber transition-colors">Terms of Service</a>
-                <span class="hidden md:inline">&middot;</span>
-                <a href="#" class="hover:text-timber transition-colors">Code of Conduct</a>
-              </div>
+        </section>
+        
+        <!-- Venue Section -->
+        <section id="venue" class="relative py-20 fade-in-section">
+            <div class="container mx-auto px-4 sm:px-6">
+                <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
+                    <div class="bg-white/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural">
+                        <h2 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 animate-fade-in text-foreground drop-shadow-sm">
+                            The Venue: CutMyTimber Factory
+                        </h2>
+                        <p class="text-base sm:text-lg text-muted-foreground leading-relaxed animate-slide-up font-medium">
+                            Discover Oregon’s newest mass timber innovation hub. Our event takes place at the state-of-the-art CutMyTimber facility, designed for learning, collaboration, and hands-on exploration.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Venue Features Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                    <!-- Factory -->
+                    <div class="bg-card-dark content-card text-center rounded-xl p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.1s;">
+                        <div class="text-4xl mb-4">🏭</div>
+                        <h3 class="text-lg font-semibold mb-2 text-forest-green">Factory</h3>
+                        <p class="text-ivory/90 text-sm font-medium">Tour a world-class mass timber fabrication facility and see advanced automation in action.</p>
+                    </div>
+                    <!-- Innovation Labs -->
+                    <div class="bg-card-dark content-card text-center rounded-xl p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.2s;">
+                        <div class="text-4xl mb-4">🧪</div>
+                        <h3 class="text-lg font-semibold mb-2 text-forest-green">Innovation Labs</h3>
+                        <p class="text-ivory/90 text-sm font-medium">Hands-on workshops and digital fabrication demos in dedicated learning spaces.</p>
+                    </div>
+                    <!-- Conference Center -->
+                    <div class="bg-card-dark content-card text-center rounded-xl p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.3s;">
+                        <div class="text-4xl mb-4">🏛️</div>
+                        <h3 class="text-lg font-semibold mb-2 text-forest-green">Conference Center</h3>
+                        <p class="text-ivory/90 text-sm font-medium">Modern auditorium and breakout rooms for talks, panels, and networking.</p>
+                    </div>
+                    <!-- Networking Areas -->
+                    <div class="bg-card-dark content-card text-center rounded-xl p-6 shadow-natural hover:shadow-forest-green transition-all duration-300 animate-scale-in" style="animation-delay: 0.4s;">
+                        <div class="text-4xl mb-4">🤝</div>
+                        <h3 class="text-lg font-semibold mb-2 text-forest-green">Networking Areas</h3>
+                        <p class="text-ivory/90 text-sm font-medium">Relax and connect in open lounges, outdoor patios, and collaborative spaces.</p>
+                    </div>
+                </div>
+
+                <!-- Factory Showcase Two-Column Layout -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20 items-center">
+                    <!-- Left: Description and List -->
+                    <div>
+                        <div class="bg-white/80 backdrop-blur-sm border border-border/50 rounded-xl p-6 sm:p-8 shadow-natural">
+                            <h3 class="text-2xl font-bold mb-4 text-timber">Inside the Factory</h3>
+                            <p class="text-base text-muted-foreground mb-5 font-medium">
+                                Experience the future of timber construction up close. Our guided tours and workshops will showcase:
+                            </p>
+                            <ul class="list-disc ml-6 text-card-foreground/85 text-base space-y-2 font-medium">
+                                <li>Automated CNC timber processing</li>
+                                <li>Robotic joinery and digital fabrication</li>
+                                <li>Material testing and prototyping labs</li>
+                                <li>Collaborative design and innovation spaces</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- Right: Gradient Timber Box -->
+                    <div class="flex justify-center">
+                        <div class="bg-gradient-timber rounded-2xl shadow-lg p-8 flex flex-col items-center w-full max-w-md text-center">
+                            <h4 class="text-2xl font-bold text-timber-foreground mb-4">Factory Tours</h4>
+                            <p class="text-timber-foreground/90 mb-6 font-medium">
+                                Guided tours run throughout the symposium. Reserve your spot for an exclusive look at the latest in timber manufacturing.
+                            </p>
+                            <a href="#" class="inline-block bg-white text-timber font-semibold py-3 px-6 rounded-lg shadow hover:bg-gray-100 transition-colors duration-200">
+                                Reserve a Tour
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logistics Information Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                    <!-- Location -->
+                    <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in text-center" style="animation-delay: 0.1s;">
+                        <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2 justify-center"><span>📍</span>Location</h4>
+                        <ul class="logistics-text space-y-1 mx-auto inline-block text-center">
+                            <li>CutMyTimber Factory</li>
+                            <li>1234 Timber Way</li>
+                            <li>Portland, OR 97210</li>
+                        </ul>
+                    </div>
+                    <!-- Parking -->
+                    <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in text-center" style="animation-delay: 0.2s;">
+                        <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2 justify-center"><span>🚗</span>Parking</h4>
+                        <ul class="logistics-text space-y-1 mx-auto inline-block text-center">
+                            <li>On-site parking available</li>
+                            <li>Overflow lot nearby</li>
+                            <li>EV charging stations</li>
+                        </ul>
+                    </div>
+                    <!-- Accommodations -->
+                    <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in text-center" style="animation-delay: 0.3s;">
+                        <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2 justify-center"><span>🏨</span>Accommodations</h4>
+                        <ul class="logistics-text space-y-1 mx-auto inline-block text-center">
+                            <li>Discounted hotel blocks</li>
+                            <li>Shuttle service to venue</li>
+                            <li>See area hotels below</li>
+                        </ul>
+                    </div>
+                    <!-- Meals -->
+                    <div class="bg-card/95 backdrop-blur-sm border border-border/50 rounded-xl p-6 shadow-natural animate-scale-in text-center" style="animation-delay: 0.4s;">
+                        <h4 class="text-lg font-semibold mb-3 text-timber flex items-center gap-2 justify-center"><span>🥗</span>Meals</h4>
+                        <ul class="logistics-text space-y-1 mx-auto inline-block text-center">
+                            <li>Breakfast & lunch included</li>
+                            <li>Dietary options available</li>
+                            <li>Evening receptions</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Getting There CTA Card -->
+                <div class="bg-white/90 border border-gray-200 rounded-xl shadow-lg p-8 max-w-2xl mx-auto text-center animate-fade-in">
+                    <h3 class="text-xl font-semibold mb-4 text-timber">Getting There</h3>
+                    <p class="text-gray-700 mb-6">
+                        Plan your visit: get directions, explore local hotels, and review transportation options to make your experience seamless.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-timber hover:opacity-90 text-white font-semibold py-3 px-6 rounded-lg transition-opacity duration-300">
+                            Get Directions
+                        </a>
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
+                            View Area Hotels
+                        </a>
+                        <a href="#" class="w-full sm:w-auto inline-block text-center bg-forest hover:bg-green-900 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-300">
+                            Transportation Info
+                        </a>
+                    </div>
+                </div>
             </div>
-          </div>
-          <script>
-            // Set footer year dynamically
-            document.addEventListener('DOMContentLoaded', function() {
-              var year = new Date().getFullYear();
-              document.getElementById('footer-year').textContent = year;
-            });
-          </script>
-        </footer>
+        </section>
+        
+        <!-- Registration Section -->
+        <section id="register" class="py-20 fade-in-section">
+            <div class="container mx-auto px-6 text-center">
+                <div class="content-card p-8 rounded-lg max-w-3xl mx-auto bg-card-dark">
+                    <h2 class="text-3xl font-bold text-ivory mb-4">Join the Movement</h2>
+                    <p class="text-ivory/80 max-w-2xl mx-auto mb-8">
+                        Whether you're looking to learn, network, or build, MassTimberNexus is the place to be. Register now to be part of the change.
+                    </p>
+                    <a href="#" class="bg-forest-green hover:opacity-90 text-ivory font-bold py-4 px-10 rounded-full transition-transform duration-300 ease-in-out transform hover:scale-105 inline-block text-lg">
+                        Register for the Event
+                    </a>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      function logModel(entity, name){
-        if(!entity) return;
-        entity.addEventListener('model-loaded', () => console.log(`[A-Frame] ${name} loaded OK`));
-        entity.addEventListener('model-error', (e) => console.error(`[A-Frame] ${name} failed`, e && e.detail));
-      }
-      logModel(document.querySelector('#house-model'), 'House');
-      logModel(document.querySelector('#sky-model'), 'Sky');
-    });
-    </script>
-
-    <script>
-    // Hard-lock the house GLB so it never moves on scroll or via scripts
-    (function(){
-      const POSE = { position:'0 0 -4.8', rotation:'0 0 0', scale:'1.5 1.5 1.5' };
-
-      function lockPose(){
-        const house = document.getElementById('house-model');
-        if (!house) return;
-        // Remove any animation-related attributes on the house or its descendants
-        const nodes = [house, ...house.querySelectorAll('*')];
-        nodes.forEach(el => {
-          Array.from(el.attributes).forEach(attr => {
-            const n = attr.name;
-            if (n === 'animation' || n === 'animation-mixer' || n.startsWith('animation__')) {
-              el.removeAttribute(n);
-            }
+      <!-- Footer -->
+      <footer class="bg-black border-t border-gray-800 text-white/70">
+        <div class="container mx-auto px-6 py-14 md:py-20">
+          <div class="grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
+            <!-- Event Info -->
+            <div class="md:col-span-2 space-y-5">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-timber flex items-center justify-center font-extrabold text-xl text-timber-foreground select-none">
+                  MTN
+                </div>
+                <div>
+                  <div class="font-bold text-white text-lg leading-tight">MassTimberNexus</div>
+                  <div class="text-xs text-white/60">Nov 7-9, 2025<br>Portland, OR</div>
+                </div>
+              </div>
+              <p class="text-sm text-white/70">
+                Symposium & Hackathon celebrating mass timber innovation, digital fabrication, and sustainable construction in the Pacific Northwest.
+              </p>
+            </div>
+            <!-- Quick Links -->
+            <div>
+              <h4 class="font-semibold text-white mb-3">Quick Links</h4>
+              <ul class="space-y-2">
+                <li><a href="#conference" class="hover:text-timber transition-colors">Symposium</a></li>
+                <li><a href="#hackathon" class="hover:text-timber transition-colors">Hackathon</a></li>
+                <li><a href="#speakers" class="hover:text-timber transition-colors">Speakers</a></li>
+                <li><a href="#schedule" class="hover:text-timber transition-colors">Schedule</a></li>
+                <li><a href="#venue" class="hover:text-timber transition-colors">Venue</a></li>
+              </ul>
+            </div>
+            <!-- Partners -->
+            <div>
+              <h4 class="font-semibold text-white mb-3">Partners</h4>
+              <ul class="space-y-2 text-sm">
+                <li>
+                  <span class="font-semibold text-white">CutMyTimber</span>
+                  <span class="ml-2 text-white/50">(Host & Factory Sponsor)</span>
+                </li>
+                <li>
+                  <span class="font-semibold text-white">AEC Hackathon</span>
+                  <span class="ml-2 text-white/50">(Hackathon Organizer)</span>
+                </li>
+                <li>
+                  <span class="font-semibold text-white">Freres Lumber</span>
+                  <span class="ml-2 text-white/50">(CLT Partner)</span>
+                </li>
+                <li>
+                  <span class="font-semibold text-white">Zip O Laminators</span>
+                  <span class="ml-2 text-white/50">(Glulam Partner)</span>
+                </li>
+              </ul>
+            </div>
+            <!-- Contact -->
+            <div>
+              <h4 class="font-semibold text-white mb-3">Contact</h4>
+              <ul class="space-y-2 text-sm">
+                <li>
+                  <a href="mailto:info@masstimbernexus.com" class="hover:text-timber transition-colors">info@masstimbernexus.com</a>
+                </li>
+                <li>
+                  <a href="tel:+15035551234" class="hover:text-timber transition-colors">+1 (503) 555-1234</a>
+                </li>
+                <li>
+                  <span class="text-white/60">#MassTimberNexus</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="border-t border-gray-800/70 py-6 px-6">
+          <div class="container mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-white/50">
+            <div>
+              &copy; <span id="footer-year"></span> MassTimberNexus. All rights reserved.
+            </div>
+            <div class="flex flex-wrap gap-4">
+              <a href="#" class="hover:text-timber transition-colors">Privacy Policy</a>
+              <span class="hidden md:inline">&middot;</span>
+              <a href="#" class="hover:text-timber transition-colors">Terms of Service</a>
+              <span class="hidden md:inline">&middot;</span>
+              <a href="#" class="hover:text-timber transition-colors">Code of Conduct</a>
+            </div>
+          </div>
+        </div>
+        <script>
+          // Set footer year dynamically
+          document.addEventListener('DOMContentLoaded', function() {
+            var year = new Date().getFullYear();
+            document.getElementById('footer-year').textContent = year;
           });
-        });
-        house.setAttribute('position', POSE.position);
-        house.setAttribute('rotation', POSE.rotation);
-        house.setAttribute('scale', POSE.scale);
-        // Force transforms at the Three.js level and freeze updates
-        const o = house.object3D;
-        if (o) {
-          o.position.set(0, 0, -4.8);
-          o.rotation.set(0, 0, 0);
-          o.scale.set(1.5, 1.5, 1.5);
-          o.updateMatrix();
-          o.matrixAutoUpdate = false;
-        }
-      }
+        </script>
+      </footer>
+  </div>
 
-      function init(){
-        const house = document.getElementById('house-model');
-        if (!house) return;
-        lockPose();
-        // If a mixer sneaks in via components, try to pause it
-        if (house.components && house.components['animation-mixer'] && house.components['animation-mixer'].mixer) {
-          house.components['animation-mixer'].mixer.timeScale = 0;
-        }
-
-        // Guard against future changes: if any attribute on the house changes, reset pose
-        const mo = new MutationObserver(() => lockPose());
-        mo.observe(house, { attributes: true });
-
-        // Also re-assert pose on scroll/resize in case of any visual jitter
-        let ticking = false;
-        function tick(){ lockPose(); ticking = false; }
-        ['scroll','resize'].forEach(evt => window.addEventListener(evt, () => {
-          if (!ticking) { ticking = true; requestAnimationFrame(tick); }
-        }));
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-      } else {
-        init();
-      }
-    })();
-    </script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Vanta.js initialization
-            if (window.VANTA && window.THREE) { // Check for THREE as well
-                VANTA.TOPOLOGY({
-                  el: "#vanta-bg",
-                  mouseControls: false,
-                  touchControls: false,
-                  gyroControls: false,
-                  minHeight: 200.00,
-                  minWidth: 200.00,
-                  scale: 1.00,
-                  scaleMobile: 1.00,
-                  color: 0x166534, // green-800
-                  backgroundColor: 0xf9fafb, // bg-gray-50
-                  THREE: window.THREE // Explicitly pass the THREE object
-                });
-                VANTA.DOTS({
-                  el: "#vanta-hackathon-bg",
-                  mouseControls: true,
-                  touchControls: true,
-                  gyroControls: false,
-                  minHeight: 200.00,
-                  minWidth: 200.00,
-                  scale: 1.00,
-                  scaleMobile: 1.00,
-                  color: 0x16a34a,
-                  color2: 0x166534,
-                  backgroundColor: 0xffffff,
-                  size: 8,
-                  spacing: 20.00,
-                  THREE: window.THREE // Explicitly pass the THREE object
-                })
-            }
+        // JavaScript for the mobile hamburger menu
+        const hamburgerButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
 
-            // Mobile menu toggle
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            mobileMenuButton.addEventListener('click', () => {
+        if (hamburgerButton) {
+            hamburgerButton.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
             });
-            
-            // Close mobile menu when a link is clicked
-            const mobileNavLinks = mobileMenu.querySelectorAll('a');
-            mobileNavLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    mobileMenu.classList.add('hidden');
-                });
+        }
+        
+        // Vanta.js animations (init only when Hackathon is visible)
+        (function(){
+          const hackathonEl = document.getElementById('hackathon');
+          const bgEl = document.getElementById('vanta-hackathon-bg');
+          if (!hackathonEl || !bgEl || !window.VANTA) return;
+          let vanta = null;
+
+          const ensureVanta = () => {
+            if (!vanta) {
+              vanta = VANTA.NET({
+                el: "#vanta-hackathon-bg",
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200.00,
+                minWidth: 200.00,
+                scale: 1.00,
+                scaleMobile: 1.00,
+                color: 0x0d6049,
+                backgroundColor: 0x020706
+              });
+            }
+          };
+          const destroyVanta = () => { if (vanta && vanta.destroy) { vanta.destroy(); vanta = null; }};
+
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting && e.intersectionRatio > 0.2) ensureVanta();
+              else destroyVanta();
             });
+          }, { threshold: [0, 0.2, 0.4], rootMargin: '-10% 0px -20% 0px' });
 
-            // Schedule tabs functionality
-            const tabs = document.querySelectorAll('.schedule-tab');
-            const contents = document.querySelectorAll('.schedule-content');
+          io.observe(hackathonEl);
+        })();
 
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // Deactivate all tabs
-                    tabs.forEach(item => {
-                        item.classList.remove('tab-active');
-                        item.classList.add('tab-inactive');
-                    });
+        // Reveal-on-scroll (fade in/out) for cards & blocks
+        (function(){
+          const SELECTORS = [
+            '.content-card',
+            '.animate-scale-in',
+            '.animate-fade-in',
+            '.animate-slide-up',
+            '#venue .grid > div',
+            '#conference .grid > div',
+            '#challenges .grid > div',
+            '#schedule .grid > div',
+            '#speakers .content-card',
+            '#hackathon .content-card'
+          ];
+          const nodes = Array.from(document.querySelectorAll(SELECTORS.join(',')));
+          // Add base reveal class and a subtle stagger
+          nodes.forEach((el, i) => {
+            el.classList.add('reveal-card');
+            el.style.setProperty('--reveal-delay', `${(i % 8) * 60}ms`);
+          });
 
-                    // Activate the clicked tab
-                    tab.classList.add('tab-active');
-                    tab.classList.remove('tab-inactive');
-
-                    // Hide all content
-                    contents.forEach(content => {
-                        content.classList.add('hidden');
-                    });
-
-                    // Show the content corresponding to the clicked tab
-                    const targetId = tab.getAttribute('data-tab');
-                    const targetContent = document.getElementById(targetId);
-                    if (targetContent) {
-                        targetContent.classList.remove('hidden');
-                    }
-                });
+          const seen = new WeakSet();
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                e.target.classList.add('in-view');
+                seen.add(e.target);
+                return;
+              }
+              // Only remove if it's well out of view to prevent rapid class churn
+              if (!e.isIntersecting && e.intersectionRatio < 0.05 && seen.has(e.target)) {
+                e.target.classList.remove('in-view');
+              }
             });
+          }, { threshold: [0.05, 0.5], rootMargin: '0px 0px -10% 0px' });
 
-            // Fade-in animations on scroll
-            const sections = document.querySelectorAll('.fade-in-section');
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1
+          nodes.forEach((el) => io.observe(el));
+        })();
+
+        // Auto-enable reduced effects on constrained devices (save-data, slow net, small screens, or reduced motion)
+        (function(){
+          try {
+            const small = window.matchMedia('(max-width: 640px)').matches;
+            const rm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+            const saveData = !!(c && c.saveData);
+            const slowNet = !!(c && /2g/.test(c.effectiveType || ''));
+            if (saveData || slowNet || small || rm) {
+              document.body.classList.add('effects-min');
+            }
+          } catch(_) {}
+        })();
+
+        // Lightweight YouTube embeds: set thumbnail and swap to iframe on interaction
+        (function(){
+          const lites = document.querySelectorAll('.yt-lite');
+          lites.forEach(el => {
+            const id = el.dataset.videoid;
+            if (!id) return;
+            el.style.backgroundImage = `url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')`;
+            const play = () => {
+              const iframe = document.createElement('iframe');
+              iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+              iframe.title = 'YouTube video';
+              iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+              iframe.allowFullscreen = true;
+              iframe.style.width = '100%';
+              iframe.style.height = '100%';
+              iframe.style.border = '0';
+              el.innerHTML = '';
+              el.appendChild(iframe);
+              el.classList.add('playing');
             };
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('is-visible');
-                        observer.unobserve(entry.target);
-                    }
-                });
-            }, observerOptions);
-            sections.forEach(section => {
-                observer.observe(section);
+            el.addEventListener('click', play, { once: true });
+            el.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' ') { e.preventDefault(); play(); } });
+            el.setAttribute('tabindex','0');
+            el.setAttribute('role','button');
+            el.setAttribute('aria-label','Play video');
+          });
+        })();
+
+        // Transform-based parallax for speakers background (disabled in reduced-effects mode)
+        (function(){
+          const bg = document.getElementById('speakers-bg');
+          if (!bg) return;
+          const reduced = document.body.classList.contains('effects-min') || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (reduced) return;
+          let raf = null;
+          function onScroll(){
+            if (raf) return;
+            raf = requestAnimationFrame(()=>{
+              raf = null;
+              const host = bg.parentElement; // #speakers section
+              const rect = host.getBoundingClientRect();
+              const vh = window.innerHeight || 0;
+              // progress ~ 0..1 across the section, clamp for safety
+              let progress = (vh - rect.top) / (vh + rect.height);
+              progress = Math.max(0, Math.min(1, progress));
+              const translate = (progress - 0.5) * 40; // -20..20px
+              bg.style.transform = `translateY(${translate.toFixed(2)}px)`;
             });
-        });
+          }
+          onScroll();
+          window.addEventListener('scroll', onScroll, { passive: true });
+          window.addEventListener('resize', onScroll);
+        })();
+
+        // A-Frame scroll-driven camera poses
+        (function() {
+          const sceneEl = document.querySelector('a-scene');
+          if (!sceneEl) return;
+
+          const deg2rad = (d) => d * Math.PI / 180;
+
+          // Per-section camera poses (rot in degrees for readability)
+          const cameraPoses = {
+            hero:      { pos: [0, 1.6, 16],  rot: [10,   0,  0] },
+            conference:{ pos: [0, 1.6, 11.5], rot: [ 0,   0,  0] },
+            hackathon: { pos: [-9.70097, 1.57474, 10.41667], rot: [5.8441695103344005, -35.63797485713722, 0] },
+            speakers:  { pos: [3.5, 1.8, 11.5], rot: [ 8,  18,  0] },
+            schedule:  { pos: [-2.5, 1.7, 12.5], rot: [ 6, -12,  0] },
+            venue:     { pos: [0, 1.8, 10.5],  rot: [ 0,   0,  0] },
+            register:  { pos: [0, 1.6, 13.5],  rot: [ 0,   0,  0] },
+          };
+          let currentKey = null;
+          let animating = false;
+          const nearlyEqual = (a,b,eps=0.001) => Math.abs(a-b) < eps;
+
+          function animateCameraTo(camEl, target, ms = 1200) {
+            if (animating) return;
+            animating = true;
+            if (!camEl || !camEl.object3D) { animating = false; return; }
+            const hadLook = camEl.hasAttribute('look-controls');
+            if (hadLook) camEl.setAttribute('look-controls', 'enabled: false');
+
+            const obj = camEl.object3D;
+            const start = {
+              x: obj.position.x, y: obj.position.y, z: obj.position.z,
+              rx: obj.rotation.x, ry: obj.rotation.y, rz: obj.rotation.z,
+            };
+            const end = {
+              x: target.pos[0], y: target.pos[1], z: target.pos[2],
+              rx: deg2rad(target.rot[0]),
+              ry: deg2rad(target.rot[1]),
+              rz: deg2rad(target.rot[2]),
+            };
+            const t0 = performance.now();
+            function easeInOutQuad(t){ return t < 0.5 ? 2*t*t : -1 + (4 - 2*t)*t; }
+            function step(now){
+              const t = Math.min(1, (now - t0) / ms);
+              const e = easeInOutQuad(t);
+              obj.position.set(
+                start.x + (end.x - start.x) * e,
+                start.y + (end.y - start.y) * e,
+                start.z + (end.z - start.z) * e,
+              );
+              obj.rotation.set(
+                start.rx + (end.rx - start.rx) * e,
+                start.ry + (end.ry - start.ry) * e,
+                start.rz + (end.rz - start.rz) * e,
+              );
+              if (t < 1) requestAnimationFrame(step); else {
+                if (hadLook) camEl.setAttribute('look-controls', 'enabled: true');
+                setTimeout(() => { animating = false; }, ms + 120);
+              }
+            }
+            requestAnimationFrame(step);
+          }
+
+          function setupScroll(camEl) {
+            const sectionToKey = new Map([
+              [document.querySelector('main'), 'hero'],
+              [document.getElementById('conference'), 'conference'],
+              [document.getElementById('hackathon'), 'hackathon'],
+              [document.getElementById('speakers'), 'speakers'],
+              [document.getElementById('schedule'), 'schedule'],
+              [document.getElementById('venue'), 'venue'],
+              [document.getElementById('register'), 'register'],
+            ].filter(([el]) => !!el));
+
+            const io = new IntersectionObserver((entries) => {
+              let best = null; let max = 0;
+              for (const e of entries) {
+                if (e.isIntersecting && e.intersectionRatio > max) { best = e.target; max = e.intersectionRatio; }
+              }
+              if (!best) return;
+              const key = sectionToKey.get(best);
+              if (key === currentKey) return;
+              const pose = cameraPoses[key];
+              if (!pose) return;
+              currentKey = key;
+              animateCameraTo(camEl, pose);
+            }, { threshold: [0.25, 0.5, 0.75], rootMargin: '-10% 0px -10% 0px' });
+
+            sectionToKey.forEach((_, el) => io.observe(el));
+          }
+
+          if (sceneEl.hasLoaded) {
+            const cam = sceneEl.querySelector('[camera]');
+            if (cam) setupScroll(cam);
+          } else {
+            sceneEl.addEventListener('loaded', () => {
+              const cam = sceneEl.querySelector('[camera]');
+              if (cam) setupScroll(cam);
+            });
+          }
+        })();
     </script>
-</body>
+
+  </body>
 </html>
